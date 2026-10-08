@@ -1,0 +1,36 @@
+{
+  "book": {
+    "titleCn": "美国儿科学会育儿百科",
+    "titleEn": "Caring for Your Baby and Young Child: Birth to Age 5",
+    "edition": "第 7 版",
+    "org": "American Academy of Pediatrics (AAP)",
+    "note": "本站为个人学习用的重点摘要，原文版权归原作者及出版方所有。每章附无损抽取的原文（raw.txt）仅供检索与核对。"
+  },
+  "parts": [
+    {
+      "id": "part1",
+      "title": "第一部分 · 从孕期到 5 岁",
+      "desc": "按阶段讲解孕期准备、新生儿护理、喂养、各年龄段发育与养育、早教、安全等。",
+      "chapters": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    },
+    {
+      "id": "part2",
+      "title": "第二部分 · 常见健康问题手册",
+      "desc": "按身体系统/症状组织的疾病与急症速查。",
+      "chapters": [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35]
+    }
+  ],
+  "chapters": [
+    {
+      "id": "ch01",
+      "number": 1,
+      "part": "part1",
+      "title": "为新生儿的到来做准备",
+      "ageStage": "孕期",
+      "pdfPages": "64-102",
+      "status": "done",
+      "summary": "content/chapters/ch01/summary.json",
+      "raw": "content/chapters/ch01/raw.txt"
+    }
+  ]
+}
