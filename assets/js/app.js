@@ -33,7 +33,21 @@
     });
   }
   function chapterById(id) {
-    return state.manifest.chapters.filter(function (c) { return c.id === id; })[0];
+    var all = (state.manifest.front || []).concat(state.manifest.chapters || []);
+    return all.filter(function (c) { return c.id === id; })[0];
+  }
+  // 全站统一的阅读顺序：卷首(引言等) + 各部分中已完成的章节
+  function orderedEntries() {
+    var out = (state.manifest.front || []).filter(function (f) { return f.status === "done"; }).slice();
+    var byNumber = {};
+    state.manifest.chapters.forEach(function (c) { byNumber[c.number] = c; });
+    state.manifest.parts.forEach(function (part) {
+      part.chapters.forEach(function (num) {
+        var c = byNumber[num];
+        if (c && c.status === "done") out.push(c);
+      });
+    });
+    return out;
   }
 
   /* ---------- 目录（侧边栏） ---------- */
@@ -43,6 +57,14 @@
     var m = state.manifest;
     var byNumber = {};
     m.chapters.forEach(function (c) { byNumber[c.number] = c; });
+
+    (m.front || []).forEach(function (f) {
+      if (f.status !== "done") return;
+      toc.appendChild(h("a", {
+        href: "#/chapter/" + f.id,
+        class: (f.id === activeId ? "active" : "")
+      }, [h("span", { class: "num" }, ["引言"]), f.title.replace(/^引言\s*·?\s*/, "")]));
+    });
 
     m.parts.forEach(function (part) {
       toc.appendChild(h("h3", null, [part.title]));
@@ -139,10 +161,14 @@
       renderTOC(id);
       content.innerHTML = "";
 
-      var partTitle = (state.manifest.parts.filter(function (p) { return p.id === data.part; })[0] || {}).title || "";
+      var partObj = state.manifest.parts.filter(function (p) { return p.id === data.part; })[0];
+      var partTitle = partObj ? partObj.title : (data.partLabel || "");
+      var headTitle = (typeof data.chapter === "number")
+        ? ("第 " + data.chapter + " 章 · " + data.title)
+        : data.title;
       content.appendChild(h("header", { class: "chapter-head" }, [
         h("div", { class: "chapter-eyebrow" }, [partTitle]),
-        h("h1", null, ["第 " + data.chapter + " 章 · " + data.title]),
+        h("h1", null, [headTitle]),
         h("div", { class: "chapter-meta" }, [
           data.ageStage ? h("span", { class: "pill" }, ["阶段：" + data.ageStage]) : null,
           data.pdfPages ? h("span", { class: "pill" }, ["原书 PDF 第 " + data.pdfPages + " 页"]) : null
@@ -182,29 +208,28 @@
       content.appendChild(chapterNav(meta));
       window.scrollTo(0, 0);
       content.focus();
-      document.title = "第" + data.chapter + "章 " + data.title + " · 育儿百科摘要";
+      document.title = headTitle + " · 育儿百科摘要";
     }).catch(function (err) {
       content.innerHTML = "";
       content.appendChild(h("div", { class: "empty" }, [String(err.message || err)]));
     });
   }
 
+  function navLabel(entry) {
+    return (typeof entry.number === "number" ? "第" + entry.number + "章 " : "") + entry.title.replace(/^引言\s*·?\s*/, "引言 · ");
+  }
   function chapterNav(meta) {
-    var order = [];
-    state.manifest.parts.forEach(function (p) { order = order.concat(p.chapters); });
-    var idx = order.indexOf(meta.number);
-    function neighbor(n) {
-      var num = order[idx + n];
-      var c = state.manifest.chapters.filter(function (x) { return x.number === num && x.status === "done"; })[0];
-      return c || null;
-    }
-    var prev = neighbor(-1), next = neighbor(1);
+    var order = orderedEntries();
+    var idx = -1;
+    order.forEach(function (e, i) { if (e.id === meta.id) idx = i; });
+    var prev = idx > 0 ? order[idx - 1] : null;
+    var next = idx >= 0 && idx < order.length - 1 ? order[idx + 1] : null;
     var nav = h("nav", { class: "chapter-nav" }, []);
     nav.appendChild(prev
-      ? h("a", { class: "prev", href: "#/chapter/" + prev.id }, [h("div", { class: "dir" }, ["← 上一章"]), "第" + prev.number + "章 " + prev.title])
+      ? h("a", { class: "prev", href: "#/chapter/" + prev.id }, [h("div", { class: "dir" }, ["← 上一篇"]), navLabel(prev)])
       : h("span", null, []));
     nav.appendChild(next
-      ? h("a", { class: "next", href: "#/chapter/" + next.id }, [h("div", { class: "dir" }, ["下一章 →"]), "第" + next.number + "章 " + next.title])
+      ? h("a", { class: "next", href: "#/chapter/" + next.id }, [h("div", { class: "dir" }, ["下一篇 →"]), navLabel(next)])
       : h("span", null, []));
     return nav;
   }
@@ -220,6 +245,14 @@
       h("p", { class: "sub" }, [b.titleEn + "（" + b.edition + "，" + b.org + "）"]),
       h("p", { class: "sub" }, ["按章节整理重点内容与值得留意的细节，持续补充中。点击下方章节开始阅读。"])
     ]);
+
+    (state.manifest.front || []).filter(function (f) { return f.status === "done"; }).forEach(function (f) {
+      home.appendChild(h("div", { class: "part-card" }, [
+        h("div", { class: "chip-grid" }, [
+          h("a", { class: "chip done", href: "#/chapter/" + f.id }, [f.title])
+        ])
+      ]));
+    });
 
     state.manifest.parts.forEach(function (part) {
       var byNumber = {};
