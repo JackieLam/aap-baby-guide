@@ -6,6 +6,17 @@
     "org": "American Academy of Pediatrics (AAP)",
     "note": "本站为个人学习用的重点摘要，原文版权归原作者及出版方所有。每章附无损抽取的原文（raw.txt）仅供检索与核对。"
   },
+  "front": [
+    {
+      "id": "intro",
+      "title": "引言 · 最好的礼物",
+      "ageStage": "育儿总则",
+      "pdfPages": "47-63",
+      "status": "done",
+      "summary": "content/chapters/intro/summary.json",
+      "raw": "content/chapters/intro/raw.txt"
+    }
+  ],
   "parts": [
     {
       "id": "part1",
