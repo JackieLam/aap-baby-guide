@@ -17,6 +17,7 @@
     </nav>
     <div class="topbar-right">
       <input id="searchInput" class="search" type="search" placeholder="搜索（章节/关键词）…" aria-label="搜索" />
+      <span id="authArea" class="auth-area"></span>
       <button id="themeToggle" class="theme-toggle" aria-label="切换深色模式">🌙</button>
     </div>
   </header>
@@ -36,6 +37,10 @@
     <span>本站为个人学习用摘要，原文版权归原作者及出版方所有。</span>
   </footer>
 
+  <!-- 账号系统（可选）：未配置 config.js 时自动跳过，站点仍用本地笔记 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="assets/js/config.js" defer></script>
   <script src="assets/js/app.js" defer></script>
+  <script src="assets/js/auth.js" defer></script>
 </body>
 </html>

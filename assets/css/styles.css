@@ -67,6 +67,44 @@ body {
 .tabs .tab:hover { background: var(--brand-soft); color: var(--brand); }
 .tabs .tab.active { background: var(--brand); color: #fff; }
 .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+/* 账号区 */
+.auth-area { display: flex; align-items: center; gap: 8px; }
+.auth-btn {
+  border: 1px solid var(--border); background: var(--bg); color: var(--text);
+  border-radius: 999px; padding: 6px 12px; cursor: pointer; font-size: 13px; white-space: nowrap;
+}
+.auth-btn:hover { background: var(--brand-soft); color: var(--brand); border-color: var(--brand); }
+.auth-user { font-size: 13px; color: var(--text-soft); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* 登录弹窗 */
+.auth-modal {
+  position: fixed; inset: 0; z-index: 80; display: none;
+  align-items: center; justify-content: center; background: rgba(0,0,0,.45); padding: 16px;
+}
+.auth-modal.show { display: flex; }
+.auth-box {
+  position: relative; width: 340px; max-width: 92vw; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow); padding: 24px 22px;
+}
+.auth-box h2 { margin: 0 0 16px; font-size: 20px; }
+.auth-box input {
+  width: 100%; box-sizing: border-box; margin-bottom: 10px; padding: 10px 12px;
+  border: 1px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--text); font-size: 14px;
+}
+.auth-box input:focus { outline: 2px solid var(--brand); border-color: transparent; }
+.auth-submit {
+  width: 100%; border: none; background: var(--brand); color: #fff;
+  padding: 11px; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 4px;
+}
+.auth-submit:hover { filter: brightness(.96); }
+.auth-close { position: absolute; top: 12px; right: 12px; border: none; background: transparent; color: var(--text-soft); font-size: 16px; cursor: pointer; }
+.auth-switch { text-align: center; font-size: 13px; color: var(--text-soft); margin: 14px 0 0; }
+.auth-switch a { color: var(--brand); text-decoration: none; }
+.auth-msg { min-height: 18px; margin: 2px 0 8px; font-size: 13px; color: var(--warn-text); }
+.auth-msg.ok { color: var(--accent); }
+
+@media (max-width: 860px) { .auth-user { display: none; } }
 .search {
   width: 220px; max-width: 42vw;
   padding: 7px 12px; border: 1px solid var(--border); border-radius: 999px;
