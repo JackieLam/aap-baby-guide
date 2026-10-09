@@ -335,19 +335,45 @@
   ];
   var sel = { range: null, text: "", chapterId: null };
 
-  function getNotes() {
+  /* 笔记存储：可插拔后端。
+   * - "local"：浏览器 localStorage（未登录 / 未配置账号系统时）
+   * - "cloud"：Supabase，由 auth.js 通过 window.CloudNotes 提供（登录后）
+   * 渲染始终读内存缓存 notesCache（同步），写入再异步同步到后端。 */
+  var notesCache = null;
+  var notesMode = "local";
+
+  function loadLocalNotes() {
     try { return JSON.parse(localStorage.getItem(NOTES_KEY) || "[]"); }
     catch (e) { return []; }
   }
-  function saveNotes(list) { localStorage.setItem(NOTES_KEY, JSON.stringify(list)); }
+  function persistLocal() { localStorage.setItem(NOTES_KEY, JSON.stringify(notesCache || [])); }
+
+  function getNotes() {
+    if (!notesCache) notesCache = loadLocalNotes();
+    return notesCache;
+  }
   function upsertNote(note) {
     var list = getNotes();
     var i = list.findIndex(function (n) { return n.id === note.id; });
     if (i >= 0) list[i] = note; else list.push(note);
-    saveNotes(list);
+    if (notesMode === "cloud" && window.CloudNotes) window.CloudNotes.upsert(note);
+    else persistLocal();
   }
-  function removeNote(id) { saveNotes(getNotes().filter(function (n) { return n.id !== id; })); }
+  function removeNote(id) {
+    notesCache = getNotes().filter(function (n) { return n.id !== id; });
+    if (notesMode === "cloud" && window.CloudNotes) window.CloudNotes.remove(id);
+    else persistLocal();
+  }
   function newId() { return "hl_" + Date.now() + "_" + Math.floor(Math.random() * 1e6); }
+
+  // 供 auth.js 调用：登录后切到云端笔记，登出后切回本地
+  window.setNotesMode = function (mode, cloudList) {
+    notesMode = (mode === "cloud") ? "cloud" : "local";
+    notesCache = (notesMode === "cloud") ? (cloudList || []) : loadLocalNotes();
+    route();
+  };
+  // 供 auth.js 调用：把本机 localStorage 的笔记取出（用于迁移到账号）
+  window.getLocalNotes = loadLocalNotes;
 
   // 当前路由对应的章节 id（仅章节页有效）
   function currentChapterId() {
@@ -548,6 +574,7 @@
 
     page.appendChild(h("div", { class: "notes-toolbar" }, [
       h("span", { class: "pill" }, ["共 " + notes.length + " 条"]),
+      h("span", { class: "pill" }, [notesMode === "cloud" ? "☁️ 已登录，云端同步" : "💾 本地存储（登录后可跨设备同步）"]),
       (function () {
         var btn = h("button", { class: "mini-btn" }, ["复制全部"]);
         btn.style.cssText = "border:1px solid var(--border);border-radius:8px;padding:5px 12px;cursor:pointer;background:var(--surface);color:var(--text)";
