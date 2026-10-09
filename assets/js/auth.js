@@ -24,7 +24,13 @@
     return;
   }
 
-  var sb = window.supabase.createClient(URL_, KEY_);
+  var sb;
+  try {
+    sb = window.supabase.createClient(URL_, KEY_);
+  } catch (e) {
+    console.error("Supabase 客户端初始化失败", e);
+    return;
+  }
 
   /* ---------- 应用笔记 <-> 数据库行 的字段映射 ---------- */
   function rowToNote(r) {
@@ -169,6 +175,9 @@
       return loadCloudNotes();
     });
   }
+
+  // 先同步渲染「登录/注册」按钮（不等异步鉴权），随后登录态再更新它
+  renderAuthArea(null);
 
   /* ---------- 监听登录状态 ---------- */
   sb.auth.onAuthStateChange(function (_event, session) {
