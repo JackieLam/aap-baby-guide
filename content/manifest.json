@@ -42,6 +42,61 @@
       "status": "done",
       "summary": "content/chapters/ch01/summary.json",
       "raw": "content/chapters/ch01/raw.txt"
+    },
+    {
+      "id": "ch02",
+      "number": 2,
+      "part": "part1",
+      "title": "分娩和分娩后",
+      "ageStage": "分娩期",
+      "pdfPages": "103-116",
+      "status": "done",
+      "summary": "content/chapters/ch02/summary.json",
+      "raw": "content/chapters/ch02/raw.txt"
+    },
+    {
+      "id": "ch03",
+      "number": 3,
+      "part": "part1",
+      "title": "婴儿的基本护理",
+      "ageStage": "新生儿护理",
+      "pdfPages": "117-143",
+      "status": "done",
+      "summary": "content/chapters/ch03/summary.json",
+      "raw": "content/chapters/ch03/raw.txt"
+    },
+    {
+      "id": "ch04",
+      "number": 4,
+      "part": "part1",
+      "title": "婴儿的喂养",
+      "ageStage": "0～1 岁喂养",
+      "pdfPages": "144-201",
+      "status": "done",
+      "summary": "content/chapters/ch04/summary.json",
+      "raw": "content/chapters/ch04/raw.txt"
+    },
+    {
+      "id": "ch05",
+      "number": 5,
+      "part": "part1",
+      "title": "新生儿的最初几日",
+      "ageStage": "新生儿",
+      "pdfPages": "202-224",
+      "status": "done",
+      "summary": "content/chapters/ch05/summary.json",
+      "raw": "content/chapters/ch05/raw.txt"
+    },
+    {
+      "id": "ch06",
+      "number": 6,
+      "part": "part1",
+      "title": "第1个月",
+      "ageStage": "0～1 月龄",
+      "pdfPages": "225-270",
+      "status": "done",
+      "summary": "content/chapters/ch06/summary.json",
+      "raw": "content/chapters/ch06/raw.txt"
     }
   ]
 }
