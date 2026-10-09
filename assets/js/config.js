@@ -10,5 +10,5 @@
  * 未填写（保持 YOUR_... 占位）时：站点照常运行，笔记走浏览器本地存储，
  * 顶部不显示登录入口。
  */
-window.SUPABASE_URL = "YOUR_SUPABASE_URL";
-window.SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+window.SUPABASE_URL = "https://tddmhsnmodkgkqiiuqwo.supabase.co";
+window.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkZG1oc25tb2RrZ2txaWl1cXdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1NDQ0NDAsImV4cCI6MjEwNzEyMDQ0MH0.DWnaPSzRQb_0TYwSqEqptHSeTsEw11-LJZpqUJc2prE";
