@@ -97,6 +97,105 @@
       "status": "done",
       "summary": "content/chapters/ch06/summary.json",
       "raw": "content/chapters/ch06/raw.txt"
+    },
+    {
+      "id": "ch07",
+      "number": 7,
+      "part": "part1",
+      "title": "1～3月龄",
+      "ageStage": "1～3 月龄",
+      "pdfPages": "271-301",
+      "status": "done",
+      "summary": "content/chapters/ch07/summary.json",
+      "raw": "content/chapters/ch07/raw.txt"
+    },
+    {
+      "id": "ch08",
+      "number": 8,
+      "part": "part1",
+      "title": "4～7月龄",
+      "ageStage": "4～7 月龄",
+      "pdfPages": "302-337",
+      "status": "done",
+      "summary": "content/chapters/ch08/summary.json",
+      "raw": "content/chapters/ch08/raw.txt"
+    },
+    {
+      "id": "ch09",
+      "number": 9,
+      "part": "part1",
+      "title": "8～12月龄",
+      "ageStage": "8～12 月龄",
+      "pdfPages": "338-380",
+      "status": "done",
+      "summary": "content/chapters/ch09/summary.json",
+      "raw": "content/chapters/ch09/raw.txt"
+    },
+    {
+      "id": "ch10",
+      "number": 10,
+      "part": "part1",
+      "title": "1岁",
+      "ageStage": "1 岁",
+      "pdfPages": "381-431",
+      "status": "done",
+      "summary": "content/chapters/ch10/summary.json",
+      "raw": "content/chapters/ch10/raw.txt"
+    },
+    {
+      "id": "ch11",
+      "number": 11,
+      "part": "part1",
+      "title": "2岁",
+      "ageStage": "2 岁",
+      "pdfPages": "432-475",
+      "status": "done",
+      "summary": "content/chapters/ch11/summary.json",
+      "raw": "content/chapters/ch11/raw.txt"
+    },
+    {
+      "id": "ch12",
+      "number": 12,
+      "part": "part1",
+      "title": "3岁",
+      "ageStage": "3 岁",
+      "pdfPages": "476-512",
+      "status": "done",
+      "summary": "content/chapters/ch12/summary.json",
+      "raw": "content/chapters/ch12/raw.txt"
+    },
+    {
+      "id": "ch13",
+      "number": 13,
+      "part": "part1",
+      "title": "4～5岁",
+      "ageStage": "4～5 岁",
+      "pdfPages": "513-547",
+      "status": "done",
+      "summary": "content/chapters/ch13/summary.json",
+      "raw": "content/chapters/ch13/raw.txt"
+    },
+    {
+      "id": "ch14",
+      "number": 14,
+      "part": "part1",
+      "title": "早期教育和看护",
+      "ageStage": "早教与托育",
+      "pdfPages": "548-587",
+      "status": "done",
+      "summary": "content/chapters/ch14/summary.json",
+      "raw": "content/chapters/ch14/raw.txt"
+    },
+    {
+      "id": "ch15",
+      "number": 15,
+      "part": "part1",
+      "title": "确保孩子的安全",
+      "ageStage": "安全防护",
+      "pdfPages": "588-647",
+      "status": "done",
+      "summary": "content/chapters/ch15/summary.json",
+      "raw": "content/chapters/ch15/raw.txt"
     }
   ]
 }
