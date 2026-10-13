@@ -446,6 +446,23 @@
     });
   }
 
+  /* 触摸 + 鼠标统一的「按下即触发」绑定：
+   * 在 iOS 上 mousedown 不可靠，需同时监听 touchstart；用 preventDefault 保住当前选区，
+   * 并用去重标记避免触摸后浏览器又合成一次 mousedown 导致重复触发。 */
+  function bindPress(el, handler) {
+    var touched = false;
+    el.addEventListener("touchstart", function (e) {
+      touched = true;
+      e.preventDefault();
+      handler(e);
+    }, { passive: false });
+    el.addEventListener("mousedown", function (e) {
+      if (touched) { touched = false; return; }
+      e.preventDefault();
+      handler(e);
+    });
+  }
+
   /* ----- 选区浮动工具条 ----- */
   function buildSelToolbar() {
     if (document.getElementById("selToolbar")) return;
@@ -453,11 +470,11 @@
     HL_COLORS.forEach(function (c) {
       var sw = h("span", { class: "swatch", title: "画重点（" + c.name + "）" }, []);
       sw.style.background = c.value;
-      sw.addEventListener("mousedown", function (e) { e.preventDefault(); createHighlight(c.value, false); });
+      bindPress(sw, function () { createHighlight(c.value, false); });
       bar.appendChild(sw);
     });
     var noteBtn = h("button", { class: "mini-btn" }, ["📝 笔记"]);
-    noteBtn.addEventListener("mousedown", function (e) { e.preventDefault(); createHighlight(HL_COLORS[0].value, true); });
+    bindPress(noteBtn, function () { createHighlight(HL_COLORS[0].value, true); });
     bar.appendChild(noteBtn);
     document.body.appendChild(bar);
   }
@@ -479,10 +496,15 @@
     var rect = range.getBoundingClientRect();
     var bar = document.getElementById("selToolbar");
     bar.classList.add("show");
-    var top = rect.top + window.scrollY - bar.offsetHeight - 8;
+    // 触摸设备上 iOS 的原生菜单（拷贝/查询）显示在选区上方，把我们的工具条放到选区下方避免遮挡。
+    var coarse = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+    var top = coarse
+      ? rect.bottom + window.scrollY + 8
+      : rect.top + window.scrollY - bar.offsetHeight - 8;
     var left = rect.left + window.scrollX + rect.width / 2 - bar.offsetWidth / 2;
+    var maxLeft = window.scrollX + document.documentElement.clientWidth - bar.offsetWidth - 6;
     bar.style.top = Math.max(window.scrollY + 4, top) + "px";
-    bar.style.left = Math.max(6, left) + "px";
+    bar.style.left = Math.min(Math.max(6, left), Math.max(6, maxLeft)) + "px";
   }
 
   function createHighlight(color, openNote) {
@@ -691,13 +713,22 @@
     buildNotePop();
     var content = document.getElementById("content");
     content.addEventListener("mouseup", function () { setTimeout(onSelection, 0); });
+    // iOS（iPhone/iPad）用触摸手柄选字时不会触发 mouseup，改由 selectionchange 驱动；
+    // 选区在拖动过程中会持续变化，防抖到松手稳定后再弹出工具条。
+    var selTimer = null;
+    document.addEventListener("selectionchange", function () {
+      if (selTimer) clearTimeout(selTimer);
+      selTimer = setTimeout(onSelection, 250);
+    });
     content.addEventListener("click", onContentClick);
-    document.addEventListener("mousedown", function (e) {
+    var dismiss = function (e) {
       var bar = document.getElementById("selToolbar");
       if (bar && !bar.contains(e.target)) hideSelToolbar();
       var pop = document.getElementById("notePop");
       if (pop && !pop.contains(e.target) && !(e.target.closest && e.target.closest("mark.hl"))) hideNotePop();
-    });
+    };
+    document.addEventListener("mousedown", dismiss);
+    document.addEventListener("touchstart", dismiss, { passive: true });
     window.addEventListener("scroll", hideSelToolbar, { passive: true });
 
     getJSON("content/manifest.json").then(function (m) {

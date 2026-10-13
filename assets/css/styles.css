@@ -251,6 +251,13 @@ mark.hl.has-note { border-bottom: 2px solid var(--brand); }
 .sel-toolbar .mini-btn { border: none; background: var(--bg); color: var(--text); border-radius: 8px; padding: 4px 10px; cursor: pointer; font-size: 13px; }
 .sel-toolbar .mini-btn:hover { background: var(--brand-soft); }
 
+/* 触摸设备：放大点选目标，便于在 iPhone/iPad 上点中 */
+@media (pointer: coarse) {
+  .sel-toolbar { gap: 10px; padding: 10px 12px; }
+  .sel-toolbar .swatch { width: 30px; height: 30px; }
+  .sel-toolbar .mini-btn { padding: 8px 14px; font-size: 15px; }
+}
+
 /* 笔记编辑气泡 */
 .note-pop {
   position: absolute; z-index: 61; display: none; width: 280px; max-width: 86vw;
