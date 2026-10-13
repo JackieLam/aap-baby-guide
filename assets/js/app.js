@@ -478,48 +478,15 @@
     bar.appendChild(noteBtn);
     document.body.appendChild(bar);
   }
-  function isCoarsePointer() {
-    return !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
-  }
-
-  /* 「待确认」自绘高亮：在清除原生选区后，用绝对定位的覆盖层沿选区的 client rects 画出
-   * 浅色高亮，让用户仍能看到选中范围（不改动 DOM 文本，故不影响后续 occ 计数）。 */
-  function clearPending() {
-    var layer = document.getElementById("pendingHl");
-    if (layer) layer.parentNode.removeChild(layer);
-  }
-  function paintPending(range) {
-    clearPending();
-    var layer = h("div", { class: "pending-hl", id: "pendingHl" }, []);
-    var rects = range.getClientRects();
-    for (var i = 0; i < rects.length; i++) {
-      var r = rects[i];
-      if (r.width < 1 || r.height < 1) continue;
-      var box = h("div", { class: "pending-hl-rect" }, []);
-      box.style.left = (r.left + window.scrollX) + "px";
-      box.style.top = (r.top + window.scrollY) + "px";
-      box.style.width = r.width + "px";
-      box.style.height = r.height + "px";
-      layer.appendChild(box);
-    }
-    document.body.appendChild(layer);
-  }
-
   function hideSelToolbar() {
     var bar = document.getElementById("selToolbar");
     if (bar) bar.classList.remove("show");
-    clearPending();
   }
   function onSelection() {
     var chapterId = currentChapterId();
     if (!chapterId) return;
     var s = window.getSelection();
-    if (!s || s.isCollapsed || !s.toString().trim()) {
-      // 触摸端清除原生选区后会触发一次 collapse 事件；此时若「待确认」高亮仍在，说明是我们
-      // 自己清的选区，保留工具条，不要隐藏。真正的关闭由点击空白处 / 滚动 / 落笔来完成。
-      if (!document.getElementById("pendingHl")) hideSelToolbar();
-      return;
-    }
+    if (!s || s.isCollapsed || !s.toString().trim()) { hideSelToolbar(); return; }
     var content = document.getElementById("content");
     var range = s.getRangeAt(0);
     if (!content.contains(range.commonAncestorContainer)) { hideSelToolbar(); return; }
@@ -527,15 +494,10 @@
     sel.text = s.toString();
     sel.chapterId = chapterId;
     var rect = range.getBoundingClientRect();
-    var coarse = isCoarsePointer();
-    // 触摸设备：先画出自绘高亮，再清掉原生选区——没有活动选区，iOS 的「拷贝/查询」菜单随即消失，
-    // 我们的工具条就不会被它盖住。
-    if (coarse) {
-      paintPending(sel.range);
-      window.getSelection().removeAllRanges();
-    }
     var bar = document.getElementById("selToolbar");
     bar.classList.add("show");
+    // 触摸设备上 iOS 的原生菜单（拷贝/查询）显示在选区上方，把我们的工具条放到选区下方避免遮挡。
+    var coarse = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
     var top = coarse
       ? rect.bottom + window.scrollY + 8
       : rect.top + window.scrollY - bar.offsetHeight - 8;
