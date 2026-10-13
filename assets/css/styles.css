@@ -258,6 +258,15 @@ mark.hl.has-note { border-bottom: 2px solid var(--brand); }
   .sel-toolbar .mini-btn { padding: 8px 14px; font-size: 15px; }
 }
 
+/* 触摸端：工具条固定停靠屏幕底部，避开贴着选区浮动的 iOS 系统菜单，绝不重叠 */
+.sel-toolbar.docked {
+  position: fixed; top: auto !important;
+  left: 50% !important; transform: translateX(-50%);
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  padding: 12px 16px; gap: 14px; border-radius: 14px;
+  box-shadow: 0 6px 24px rgba(20,24,40,.22);
+}
+
 /* 笔记编辑气泡 */
 .note-pop {
   position: absolute; z-index: 61; display: none; width: 280px; max-width: 86vw;

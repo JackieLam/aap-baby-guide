@@ -493,14 +493,21 @@
     sel.range = range.cloneRange();
     sel.text = s.toString();
     sel.chapterId = chapterId;
-    var rect = range.getBoundingClientRect();
     var bar = document.getElementById("selToolbar");
     bar.classList.add("show");
-    // 触摸设备上 iOS 的原生菜单（拷贝/查询）显示在选区上方，把我们的工具条放到选区下方避免遮挡。
+    // 触摸设备（iPhone/iPad）：iOS 的「拷贝/查询/翻译」系统菜单贴着选区浮动，位置由系统决定、
+    // 网页无法控制，容易盖住我们的工具条。因此把工具条固定停靠在屏幕底部——远离选区，绝不重叠。
     var coarse = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
-    var top = coarse
-      ? rect.bottom + window.scrollY + 8
-      : rect.top + window.scrollY - bar.offsetHeight - 8;
+    if (coarse) {
+      bar.classList.add("docked");
+      bar.style.top = "";
+      bar.style.left = "";
+      return;
+    }
+    // 桌面端：浮在选区上方，跟随选区定位。
+    bar.classList.remove("docked");
+    var rect = range.getBoundingClientRect();
+    var top = rect.top + window.scrollY - bar.offsetHeight - 8;
     var left = rect.left + window.scrollX + rect.width / 2 - bar.offsetWidth / 2;
     var maxLeft = window.scrollX + document.documentElement.clientWidth - bar.offsetWidth - 6;
     bar.style.top = Math.max(window.scrollY + 4, top) + "px";
@@ -729,7 +736,12 @@
     };
     document.addEventListener("mousedown", dismiss);
     document.addEventListener("touchstart", dismiss, { passive: true });
-    window.addEventListener("scroll", hideSelToolbar, { passive: true });
+    // 桌面端浮动工具条随选区定位，滚动后会错位，故滚动即隐藏；触摸端是底部停靠的固定条，
+    // iOS 选字后常自动滚动把选区带入视野，若此时隐藏会很突兀，故触摸端不随滚动隐藏。
+    window.addEventListener("scroll", function () {
+      var coarse = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+      if (!coarse) hideSelToolbar();
+    }, { passive: true });
 
     getJSON("content/manifest.json").then(function (m) {
       state.manifest = m;
