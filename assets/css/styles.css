@@ -258,6 +258,13 @@ mark.hl.has-note { border-bottom: 2px solid var(--brand); }
   .sel-toolbar .mini-btn { padding: 8px 14px; font-size: 15px; }
 }
 
+/* 「待确认」自绘高亮层：清掉 iOS 原生选区后，用它显示用户选中的范围 */
+.pending-hl { position: absolute; top: 0; left: 0; z-index: 55; pointer-events: none; }
+.pending-hl-rect {
+  position: absolute; background: rgba(255, 213, 79, .55); border-radius: 2px;
+}
+[data-theme="dark"] .pending-hl-rect { background: rgba(255, 213, 79, .35); }
+
 /* 笔记编辑气泡 */
 .note-pop {
   position: absolute; z-index: 61; display: none; width: 280px; max-width: 86vw;
