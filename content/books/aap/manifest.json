@@ -13,8 +13,8 @@
       "ageStage": "育儿总则",
       "pdfPages": "47-63",
       "status": "done",
-      "summary": "content/chapters/intro/summary.json",
-      "raw": "content/chapters/intro/raw.txt"
+      "summary": "content/books/aap/chapters/intro/summary.json",
+      "raw": "content/books/aap/chapters/intro/raw.txt"
     }
   ],
   "parts": [
@@ -40,8 +40,8 @@
       "ageStage": "孕期",
       "pdfPages": "64-102",
       "status": "done",
-      "summary": "content/chapters/ch01/summary.json",
-      "raw": "content/chapters/ch01/raw.txt"
+      "summary": "content/books/aap/chapters/ch01/summary.json",
+      "raw": "content/books/aap/chapters/ch01/raw.txt"
     },
     {
       "id": "ch02",
@@ -51,8 +51,8 @@
       "ageStage": "分娩期",
       "pdfPages": "103-116",
       "status": "done",
-      "summary": "content/chapters/ch02/summary.json",
-      "raw": "content/chapters/ch02/raw.txt"
+      "summary": "content/books/aap/chapters/ch02/summary.json",
+      "raw": "content/books/aap/chapters/ch02/raw.txt"
     },
     {
       "id": "ch03",
@@ -62,8 +62,8 @@
       "ageStage": "新生儿护理",
       "pdfPages": "117-143",
       "status": "done",
-      "summary": "content/chapters/ch03/summary.json",
-      "raw": "content/chapters/ch03/raw.txt"
+      "summary": "content/books/aap/chapters/ch03/summary.json",
+      "raw": "content/books/aap/chapters/ch03/raw.txt"
     },
     {
       "id": "ch04",
@@ -73,8 +73,8 @@
       "ageStage": "0～1 岁喂养",
       "pdfPages": "144-201",
       "status": "done",
-      "summary": "content/chapters/ch04/summary.json",
-      "raw": "content/chapters/ch04/raw.txt"
+      "summary": "content/books/aap/chapters/ch04/summary.json",
+      "raw": "content/books/aap/chapters/ch04/raw.txt"
     },
     {
       "id": "ch05",
@@ -84,8 +84,8 @@
       "ageStage": "新生儿",
       "pdfPages": "202-224",
       "status": "done",
-      "summary": "content/chapters/ch05/summary.json",
-      "raw": "content/chapters/ch05/raw.txt"
+      "summary": "content/books/aap/chapters/ch05/summary.json",
+      "raw": "content/books/aap/chapters/ch05/raw.txt"
     },
     {
       "id": "ch06",
@@ -95,8 +95,8 @@
       "ageStage": "0～1 月龄",
       "pdfPages": "225-270",
       "status": "done",
-      "summary": "content/chapters/ch06/summary.json",
-      "raw": "content/chapters/ch06/raw.txt"
+      "summary": "content/books/aap/chapters/ch06/summary.json",
+      "raw": "content/books/aap/chapters/ch06/raw.txt"
     },
     {
       "id": "ch07",
@@ -106,8 +106,8 @@
       "ageStage": "1～3 月龄",
       "pdfPages": "271-301",
       "status": "done",
-      "summary": "content/chapters/ch07/summary.json",
-      "raw": "content/chapters/ch07/raw.txt"
+      "summary": "content/books/aap/chapters/ch07/summary.json",
+      "raw": "content/books/aap/chapters/ch07/raw.txt"
     },
     {
       "id": "ch08",
@@ -117,8 +117,8 @@
       "ageStage": "4～7 月龄",
       "pdfPages": "302-337",
       "status": "done",
-      "summary": "content/chapters/ch08/summary.json",
-      "raw": "content/chapters/ch08/raw.txt"
+      "summary": "content/books/aap/chapters/ch08/summary.json",
+      "raw": "content/books/aap/chapters/ch08/raw.txt"
     },
     {
       "id": "ch09",
@@ -128,8 +128,8 @@
       "ageStage": "8～12 月龄",
       "pdfPages": "338-380",
       "status": "done",
-      "summary": "content/chapters/ch09/summary.json",
-      "raw": "content/chapters/ch09/raw.txt"
+      "summary": "content/books/aap/chapters/ch09/summary.json",
+      "raw": "content/books/aap/chapters/ch09/raw.txt"
     },
     {
       "id": "ch10",
@@ -139,8 +139,8 @@
       "ageStage": "1 岁",
       "pdfPages": "381-431",
       "status": "done",
-      "summary": "content/chapters/ch10/summary.json",
-      "raw": "content/chapters/ch10/raw.txt"
+      "summary": "content/books/aap/chapters/ch10/summary.json",
+      "raw": "content/books/aap/chapters/ch10/raw.txt"
     },
     {
       "id": "ch11",
@@ -150,8 +150,8 @@
       "ageStage": "2 岁",
       "pdfPages": "432-475",
       "status": "done",
-      "summary": "content/chapters/ch11/summary.json",
-      "raw": "content/chapters/ch11/raw.txt"
+      "summary": "content/books/aap/chapters/ch11/summary.json",
+      "raw": "content/books/aap/chapters/ch11/raw.txt"
     },
     {
       "id": "ch12",
@@ -161,8 +161,8 @@
       "ageStage": "3 岁",
       "pdfPages": "476-512",
       "status": "done",
-      "summary": "content/chapters/ch12/summary.json",
-      "raw": "content/chapters/ch12/raw.txt"
+      "summary": "content/books/aap/chapters/ch12/summary.json",
+      "raw": "content/books/aap/chapters/ch12/raw.txt"
     },
     {
       "id": "ch13",
@@ -172,8 +172,8 @@
       "ageStage": "4～5 岁",
       "pdfPages": "513-547",
       "status": "done",
-      "summary": "content/chapters/ch13/summary.json",
-      "raw": "content/chapters/ch13/raw.txt"
+      "summary": "content/books/aap/chapters/ch13/summary.json",
+      "raw": "content/books/aap/chapters/ch13/raw.txt"
     },
     {
       "id": "ch14",
@@ -183,8 +183,8 @@
       "ageStage": "早教与托育",
       "pdfPages": "548-587",
       "status": "done",
-      "summary": "content/chapters/ch14/summary.json",
-      "raw": "content/chapters/ch14/raw.txt"
+      "summary": "content/books/aap/chapters/ch14/summary.json",
+      "raw": "content/books/aap/chapters/ch14/raw.txt"
     },
     {
       "id": "ch15",
@@ -194,8 +194,8 @@
       "ageStage": "安全防护",
       "pdfPages": "588-647",
       "status": "done",
-      "summary": "content/chapters/ch15/summary.json",
-      "raw": "content/chapters/ch15/raw.txt"
+      "summary": "content/books/aap/chapters/ch15/summary.json",
+      "raw": "content/books/aap/chapters/ch15/raw.txt"
     }
   ]
 }
