@@ -335,6 +335,15 @@
         h("div", { class: "chapter-meta" }, pills)
       ]));
 
+      if (isFlatKind(desc.kind) && entry.video) {
+        var vid = h("video", {
+          class: "note-video", controls: "", preload: "metadata", playsinline: "",
+          "webkit-playsinline": "", src: entry.video
+        }, ["你的浏览器不支持内嵌视频，请使用上方链接查看原片。"]);
+        if (entry.poster) vid.setAttribute("poster", entry.poster);
+        content.appendChild(h("div", { class: "note-video-wrap" }, [vid]));
+      }
+
       if (isFlatKind(desc.kind) && entry.link) {
         content.appendChild(h("div", { class: "raw-link" }, [
           "来源（" + (entry.type || "链接") + "）：",
