@@ -27,5 +27,19 @@
       "desc": "围绕新书《9 Months That Count Forever》，讲解孕期饮食、血糖与表观遗传如何塑造宝宝一生，并给出对所有人都适用的降血糖技巧。",
       "manifest": "content/podcasts/doac-pregnancy-glucose/manifest.json"
     }
+  ],
+  "others": [
+    {
+      "id": "other-pregnancy-weight",
+      "emoji": "⚖️",
+      "title": "如何管理好孕期合理的体重增长",
+      "type": "腾讯会议",
+      "source": "营养李老师（基层老李ᴿᴰ）",
+      "link": "https://meeting.tencent.com/cw/KEDgx7qea6",
+      "desc": "营养科李老师的孕期体重管理分享：增重过多/不足的风险、合理增重标准、控糖与蛋白质、习惯管理、低体重与超重宝妈的应对，以及 13 个高频答疑。",
+      "status": "done",
+      "summary": "content/others/other-pregnancy-weight/summary.json",
+      "raw": "content/others/other-pregnancy-weight/raw.txt"
+    }
   ]
 }
