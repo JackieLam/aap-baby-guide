@@ -4,11 +4,12 @@
 
 > 本站为个人学习用的知识摘要与笔记。原书/音频版权归原作者及出版方所有；每章附带的 `raw.txt` / `transcript.md` 为无损抽取的原文/文字稿，仅用于检索与核对。
 
-顶部分三个标签：
+顶部分四个标签：
 
 - **📖 Books** —— 我读过的书，按章节整理的重点摘要。首本为《美国儿科学会育儿百科（第 7 版）》，后续会引入更多书。
 - **🎙️ Podcasts** —— 我听过的播客，归纳讨论过的知识要点（同样支持画重点、记笔记）。
-- **📝 Note** —— 跨所有书与播客的个人笔记汇总。
+- **🗂️ 其他** —— 讲座、会议、视频等其他来源的知识整理（扁平条目，每条标注来源类型与原始链接）。
+- **📝 Note** —— 跨所有来源的个人笔记汇总。
 
 ## 在线访问
 
@@ -40,12 +41,16 @@ aap-baby-guide/
 │   │       └── chapters/chNN/
 │   │           ├── summary.json    # 结构化人读摘要（渲染器据此生成页面）
 │   │           └── raw.txt         # PDF 无损抽取原文（供检索/未来 AI）
-│   └── podcasts/
-│       └── <podcast-id>/
-│           ├── manifest.json       # 该播客的单集登记表
-│           └── episodes/epNN/
-│               ├── summary.json    # 结构化人读摘要
-│               └── transcript.md   # 英文文字稿（供检索/核对）
+│   ├── podcasts/
+│   │   └── <podcast-id>/
+│   │       ├── manifest.json       # 该播客的单集登记表
+│   │       └── episodes/epNN/
+│   │           ├── summary.json    # 结构化人读摘要
+│   │           └── transcript.md   # 英文文字稿（供检索/核对）
+│   └── others/                     # 「其他」来源：扁平条目（讲座/会议/视频等）
+│       └── <other-id>/
+│           ├── summary.json        # 结构化人读摘要
+│           └── raw.txt             # 原始文字稿（供检索/核对）
 ├── scripts/
 │   └── extract_chapter.sh          # 从 PDF 抽取某章原文的辅助脚本
 └── README.md
@@ -70,6 +75,14 @@ aap-baby-guide/
 1. 在 `content/podcasts/<podcast-id>/` 下建好 `manifest.json` 与各集 `episodes/epNN/{summary.json,transcript.md}`。
 2. 在 `content/library.json` 的 `podcasts` 数组里登记一行。
 3. 把该集 `status` 设为 `"done"`，导航、首页、上一/下一篇、搜索都会自动包含它。
+
+### 新增一条「其他」来源（零改码）
+
+「其他」是扁平来源：每条内容本身就是一个条目，没有子合集。
+
+1. 在 `content/others/<other-id>/` 下放好 `summary.json`（结构同下方 schema）与 `raw.txt`（原始文字稿）。
+2. 在 `content/library.json` 的 `others` 数组里登记一行：`id` / `emoji` / `title` / `type`（来源类型，如「腾讯会议」）/ `source` / `link`（原始链接）/ `desc` / `status` / `summary` / `raw`。
+3. 把 `status` 设为 `"done"`，顶部「🗂️ 其他」标签、首页、搜索、笔记都会自动包含它。
 
 ### summary.json 的内容块（block）类型
 
