@@ -1,0 +1,22 @@
+{
+  "podcast": {
+    "title": "孕期饮食如何重塑宝宝的一生",
+    "show": "The Diary of a CEO",
+    "host": "Steven Bartlett",
+    "guest": "Jessie Inchauspé（血糖女神 · 生物化学家）",
+    "note": "本页为个人学习用的要点整理，内容版权归播客及嘉宾所有。附带的英文文字稿（transcript）仅供检索与核对。"
+  },
+  "episodes": [
+    {
+      "id": "doac-ep-9months",
+      "number": 1,
+      "title": "孕期饮食如何重塑宝宝的一生 · 血糖、营养与表观遗传",
+      "book": "新书《9 Months That Count Forever: How Your Pregnancy Diet Shapes Your Baby's Future》",
+      "duration": "01:36:17",
+      "lang": "英语",
+      "status": "done",
+      "summary": "content/podcasts/doac-pregnancy-glucose/episodes/ep01/summary.json",
+      "raw": "content/podcasts/doac-pregnancy-glucose/episodes/ep01/transcript.md"
+    }
+  ]
+}

@@ -1,8 +1,14 @@
-# 美国儿科学会育儿百科 · 重点摘要
+# 孕期 + 育儿知识中心
 
-把《美国儿科学会育儿百科（第 7 版）》（*Caring for Your Baby and Young Child: Birth to Age 5*, AAP）又长又多的章节，整理成按章节组织、方便快速阅读的网页。
+一个集中整理「孕期 + 育儿」知识的个人站点：把我读过的书、听过的播客，以及其他来源的要点，归纳成按来源与章节组织、方便快速阅读并可随手记笔记的网页。
 
-> 本站为个人学习用的重点摘要。原书版权归原作者及出版方所有；每章附带的 `raw.txt` 为无损抽取的原文片段，仅用于检索与核对。
+> 本站为个人学习用的知识摘要与笔记。原书/音频版权归原作者及出版方所有；每章附带的 `raw.txt` / `transcript.md` 为无损抽取的原文/文字稿，仅用于检索与核对。
+
+顶部分三个标签：
+
+- **📖 Books** —— 我读过的书，按章节整理的重点摘要。首本为《美国儿科学会育儿百科（第 7 版）》，后续会引入更多书。
+- **🎙️ Podcasts** —— 我听过的播客，归纳讨论过的知识要点（同样支持画重点、记笔记）。
+- **📝 Note** —— 跨所有书与播客的个人笔记汇总。
 
 ## 在线访问
 
@@ -22,38 +28,48 @@ python3 -m http.server 8000
 
 ```
 aap-baby-guide/
-├── index.html                 # 页面外壳（顶栏 + 侧边目录 + 内容区）
+├── index.html                      # 页面外壳（顶栏三标签 + 侧边目录 + 内容区）
 ├── assets/
-│   ├── css/styles.css         # 样式（含深色模式、移动端）
-│   └── js/app.js              # 渲染器：哈希路由 + 目录 + 内容块 + 搜索
+│   ├── css/styles.css              # 样式（含深色模式、移动端、来源卡片）
+│   └── js/app.js                   # 渲染器：哈希路由 + 目录 + 内容块 + 搜索 + 画重点/笔记
 ├── content/
-│   ├── manifest.json          # 目录登记表（全站唯一的“章节注册处”）
-│   └── chapters/
-│       └── ch01/
-│           ├── summary.json   # 结构化人读摘要（渲染器据此生成页面）
-│           └── raw.txt        # PDF 无损抽取原文（带页码标记，供检索/未来 AI）
+│   ├── library.json                # 全站索引：登记所有书籍与播客（唯一的“来源注册处”）
+│   ├── books/
+│   │   └── aap/
+│   │       ├── manifest.json       # 该书的章节登记表
+│   │       └── chapters/chNN/
+│   │           ├── summary.json    # 结构化人读摘要（渲染器据此生成页面）
+│   │           └── raw.txt         # PDF 无损抽取原文（供检索/未来 AI）
+│   └── podcasts/
+│       └── <podcast-id>/
+│           ├── manifest.json       # 该播客的单集登记表
+│           └── episodes/epNN/
+│               ├── summary.json    # 结构化人读摘要
+│               └── transcript.md   # 英文文字稿（供检索/核对）
 ├── scripts/
-│   └── extract_chapter.sh     # 从 PDF 抽取某章原文的辅助脚本
+│   └── extract_chapter.sh          # 从 PDF 抽取某章原文的辅助脚本
 └── README.md
 ```
 
 ## 设计理念：内容与展示分离，天然可扩展
 
-- **展示层**（`index.html` / `styles.css` / `app.js`）通用、固定，不随章节变化。
-- **内容层**（`content/`）是纯数据。每一章两份产物：
+- **展示层**（`index.html` / `styles.css` / `app.js`）通用、固定，不随内容变化。书与播客复用同一套「章节/单集」渲染与「画重点/笔记」能力。
+- **内容层**（`content/`）是纯数据：
   - `summary.json` —— 给人读的结构化摘要（见下方 schema）。
-  - `raw.txt` —— 给机器读的无损原文，为未来的「AI 问答 / 原文检索」预留底本。
+  - `raw.txt` / `transcript.md` —— 给机器读的无损原文/文字稿，为未来的「AI 问答 / 原文检索」预留底本。
 
-### 新增一章的步骤（零改码）
+> ⚠️ 全站以「条目 id」（书的章节 id、播客的单集 id）关联笔记，因此所有条目 id 必须全局唯一（例如书用 `ch01`、播客单集用带前缀的 `doac-ep-9months`）。
 
-1. 抽取原文：
-   ```bash
-   ./scripts/extract_chapter.sh ../version7.pdf <起始页> <结束页> content/chapters/chNN/raw.txt
-   ```
-2. 阅读原文，编写 `content/chapters/chNN/summary.json`。
-3. 在 `content/manifest.json` 的 `chapters` 数组里加一条，并把该章 `status` 设为 `"done"`。
+### 新增一本书（零改码）
 
-完成后导航、首页、上一章/下一章、搜索都会自动包含这一章。
+1. 在 `content/books/<book-id>/` 下建好 `manifest.json` 与各章 `chapters/chNN/{summary.json,raw.txt}`。
+2. 在 `content/library.json` 的 `books` 数组里登记一行（`id` / `titleCn` / `manifest` 等）。
+
+### 新增一档播客 / 一集（零改码）
+
+1. 在 `content/podcasts/<podcast-id>/` 下建好 `manifest.json` 与各集 `episodes/epNN/{summary.json,transcript.md}`。
+2. 在 `content/library.json` 的 `podcasts` 数组里登记一行。
+3. 把该集 `status` 设为 `"done"`，导航、首页、上一/下一篇、搜索都会自动包含它。
 
 ### summary.json 的内容块（block）类型
 
@@ -61,9 +77,9 @@ aap-baby-guide/
 |------|------|------|
 | `para` | 普通段落 | `text` |
 | `keypoints` | 要点列表 | `title?`, `items[]` |
-| `warning` | ⚠️ 安全警示（红） | `title`, `text?` / `items[]` |
-| `position` | 🏛️ 我们的立场（AAP 观点，蓝） | `title`, `text` |
-| `tip` | 💡 小贴士（黄） | `title`, `text?` / `items[]` |
+| `warning` | ⚠️ 安全警示 / 需避开（红） | `title`, `text?` / `items[]` |
+| `position` | 🏛️ 立场 / 核心观点（蓝） | `title`, `text` |
+| `tip` | 💡 小贴士 / 实用技巧（黄） | `title`, `text?` / `items[]` |
 | `checklist` | ✅ 可勾选清单（勾选状态存本地） | `title`, `items[]` |
 | `table` | 表格 | `title?`, `headers[]`, `rows[][]` |
 
@@ -71,8 +87,7 @@ aap-baby-guide/
 
 ## 后续规划
 
-- [ ] 逐章补充 summary.json（当前已完成：第 1 章）
-- [ ] 全站搜索索引（目前为已加载章节的即时搜索）
+- [ ] 引入更多书籍与播客来源
 - [ ] 速查卡片：疫苗接种时间表、急救步骤、发育里程碑
 - [ ] 按月龄/年龄的时间轴导航
-- [ ] AI 问答：以 `raw.txt` 为检索底本，接入 serverless 后端调用大模型（不改动现有静态架构）
+- [ ] AI 问答：以 `raw.txt` / `transcript.md` 为检索底本，接入 serverless 后端调用大模型（不改动现有静态架构）

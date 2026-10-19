@@ -1,11 +1,15 @@
-/* 美国儿科学会育儿百科 · 重点摘要 —— 零构建静态站渲染器
- * 设计目标：内容与展示分离。新增一章 = 在 content/manifest.json 登记一行，
- * 并放入该章的 summary.json + raw.txt，无需改动本文件。
+/* 孕期 + 育儿知识中心 —— 零构建静态站渲染器
+ * 设计目标：内容与展示分离，天然可扩展。
+ *   - 新增一本书：在 content/library.json 的 books 里登记一行，并放入该书的 manifest + 各章 summary.json/raw.txt。
+ *   - 新增一档播客：在 content/library.json 的 podcasts 里登记一行，并放入该播客的 manifest + 各集 summary.json/transcript。
+ * 书与播客共用同一套「章节/单集」渲染与「画重点/笔记」能力，无需改动本文件。
  */
 (function () {
   "use strict";
 
-  var state = { manifest: null, chapterCache: {} };
+  /* state.index：全站所有「条目」(书的章节 / 播客的单集) 的统一索引，键为全局唯一的条目 id。
+   * 笔记正是以这个 id 关联，因此书与播客的条目 id 不能重复。 */
+  var state = { library: null, books: {}, podcasts: {}, index: {}, entryCache: {} };
 
   /* ---------- 工具 ---------- */
   function h(tag, attrs, children) {
@@ -32,16 +36,14 @@
       return r.json();
     });
   }
-  function chapterById(id) {
-    var all = (state.manifest.front || []).concat(state.manifest.chapters || []);
-    return all.filter(function (c) { return c.id === id; })[0];
-  }
-  // 全站统一的阅读顺序：卷首(引言等) + 各部分中已完成的章节
-  function orderedEntries() {
-    var out = (state.manifest.front || []).filter(function (f) { return f.status === "done"; }).slice();
+
+  /* ---------- 全局索引 / 导航辅助 ---------- */
+  // 某本书 manifest 的有序条目（卷首 done + 各部分中 done 的章节）
+  function bookOrderedEntries(m) {
+    var out = (m.front || []).filter(function (f) { return f.status === "done"; }).slice();
     var byNumber = {};
-    state.manifest.chapters.forEach(function (c) { byNumber[c.number] = c; });
-    state.manifest.parts.forEach(function (part) {
+    (m.chapters || []).forEach(function (c) { byNumber[c.number] = c; });
+    (m.parts || []).forEach(function (part) {
       part.chapters.forEach(function (num) {
         var c = byNumber[num];
         if (c && c.status === "done") out.push(c);
@@ -49,36 +51,115 @@
     });
     return out;
   }
+  // 某档播客 manifest 的有序单集（done）
+  function podcastOrderedEntries(m) {
+    return (m.episodes || []).filter(function (e) { return e.status === "done"; });
+  }
+  // 某条目所在合集的有序条目（用于上一/下一篇）
+  function collOrderedEntries(desc) {
+    return desc.kind === "book" ? bookOrderedEntries(desc.manifest) : podcastOrderedEntries(desc.manifest);
+  }
+  // 全站有序条目 id（书在前、播客在后；用于笔记分组排序）
+  function orderedEntryIds() {
+    var ids = [];
+    (state.library.books || []).forEach(function (b) {
+      bookOrderedEntries(state.books[b.id] || {}).forEach(function (e) { ids.push(e.id); });
+    });
+    (state.library.podcasts || []).forEach(function (p) {
+      podcastOrderedEntries(state.podcasts[p.id] || {}).forEach(function (e) { ids.push(e.id); });
+    });
+    return ids;
+  }
+  function entryDesc(id) { return state.index[id]; }
+  function entryTitle(id) {
+    var d = state.index[id];
+    if (!d) return id;
+    var e = d.entry;
+    return (d.kind === "book" && typeof e.number === "number") ? ("第" + e.number + "章 " + e.title) : e.title;
+  }
+  // 条目对应的阅读路由；兼容旧笔记（仅存 chapterId）与旧书签 #/chapter/<id>
+  function routeForEntry(id) {
+    var d = state.index[id];
+    if (!d) return "#/";
+    return (d.kind === "book" ? "#/book/" : "#/podcast/") + d.collId + "/" + id;
+  }
 
   /* ---------- 目录（侧边栏） ---------- */
-  function renderTOC(activeId) {
+  function renderTOC(ctx) {
     var toc = document.getElementById("toc");
     toc.innerHTML = "";
-    var m = state.manifest;
+    ctx = ctx || { type: "library" };
+
+    if (ctx.type === "book") { renderBookTOC(ctx.collId, ctx.activeId); return; }
+    if (ctx.type === "podcast") { renderPodcastTOC(ctx.collId, ctx.activeId); return; }
+
+    // 合集首页 / 笔记页：列出全部书与播客
+    var lib = state.library;
+    if (lib.books && lib.books.length) {
+      toc.appendChild(h("h3", null, ["📖 Books"]));
+      lib.books.forEach(function (b) {
+        toc.appendChild(h("a", { href: "#/book/" + b.id },
+          [h("span", { class: "num" }, [b.emoji || "📘"]), b.titleCn || b.title]));
+      });
+    }
+    if (lib.podcasts && lib.podcasts.length) {
+      toc.appendChild(h("h3", null, ["🎙️ Podcasts"]));
+      lib.podcasts.forEach(function (p) {
+        toc.appendChild(h("a", { href: "#/podcast/" + p.id },
+          [h("span", { class: "num" }, [p.emoji || "🎧"]), p.title]));
+      });
+    }
+  }
+
+  function renderBookTOC(bookId, activeId) {
+    var toc = document.getElementById("toc");
+    var m = state.books[bookId];
+    var b = (state.library.books || []).filter(function (x) { return x.id === bookId; })[0] || {};
+    if (!m) return;
+    toc.appendChild(h("a", { href: "#/books", class: "toc-back" }, ["← 所有书籍"]));
+    toc.appendChild(h("h3", null, [b.titleCn || b.title || "书籍"]));
     var byNumber = {};
-    m.chapters.forEach(function (c) { byNumber[c.number] = c; });
+    (m.chapters || []).forEach(function (c) { byNumber[c.number] = c; });
 
     (m.front || []).forEach(function (f) {
       if (f.status !== "done") return;
       toc.appendChild(h("a", {
-        href: "#/chapter/" + f.id,
+        href: "#/book/" + bookId + "/" + f.id,
         class: (f.id === activeId ? "active" : "")
       }, [h("span", { class: "num" }, ["引言"]), f.title.replace(/^引言\s*·?\s*/, "")]));
     });
 
-    m.parts.forEach(function (part) {
+    (m.parts || []).forEach(function (part) {
       toc.appendChild(h("h3", null, [part.title]));
       part.chapters.forEach(function (num) {
         var c = byNumber[num];
         var done = c && c.status === "done";
         var label = (c && c.title) || "（待整理）";
         var a = h("a", {
-          href: done ? "#/chapter/" + c.id : "#/",
+          href: done ? "#/book/" + bookId + "/" + c.id : "#/book/" + bookId,
           class: (done ? "" : "pending") + (c && c.id === activeId ? " active" : "")
         }, [h("span", { class: "num" }, ["第" + num + "章"]), label]);
         if (!done) a.addEventListener("click", function (e) { e.preventDefault(); });
         toc.appendChild(a);
       });
+    });
+  }
+
+  function renderPodcastTOC(pid, activeId) {
+    var toc = document.getElementById("toc");
+    var m = state.podcasts[pid];
+    var p = (state.library.podcasts || []).filter(function (x) { return x.id === pid; })[0] || {};
+    if (!m) return;
+    toc.appendChild(h("a", { href: "#/podcasts", class: "toc-back" }, ["← 所有播客"]));
+    toc.appendChild(h("h3", null, [p.title || "播客"]));
+    (m.episodes || []).forEach(function (e) {
+      var done = e.status === "done";
+      var a = h("a", {
+        href: done ? "#/podcast/" + pid + "/" + e.id : "#/podcast/" + pid,
+        class: (done ? "" : "pending") + (e.id === activeId ? " active" : "")
+      }, [h("span", { class: "num" }, ["第" + (e.number || 1) + "集"]), e.title]);
+      if (!done) a.addEventListener("click", function (ev) { ev.preventDefault(); });
+      toc.appendChild(a);
     });
   }
 
@@ -108,7 +189,7 @@
           block.title ? h("p", { class: "block-title" }, ["✅ " + block.title]) : null
         ]);
         (block.items || []).forEach(function (it, i) {
-          var key = "chk:" + ctx.chapterId + ":" + (block.title || "list") + ":" + i;
+          var key = "chk:" + ctx.entryId + ":" + (block.title || "list") + ":" + i;
           var input = h("input", { type: "checkbox" });
           if (localStorage.getItem(key) === "1") input.checked = true;
           input.addEventListener("change", function () {
@@ -146,34 +227,47 @@
     return h("div", { class: "block callout " + kind }, kids);
   }
 
-  /* ---------- 页面：章节 ---------- */
-  function showChapter(id, keepScroll) {
-    var meta = chapterById(id);
+  /* ---------- 页面：条目（书的章节 / 播客的单集） ---------- */
+  function showEntry(id, keepScroll) {
+    var desc = state.index[id];
     var content = document.getElementById("content");
-    if (!meta || meta.status !== "done") { showHome(); return; }
+    if (!desc || desc.entry.status !== "done") { showHome(); return; }
+    var entry = desc.entry;
     var scrollY = keepScroll ? window.scrollY : 0;
     if (!keepScroll) content.innerHTML = '<div class="loading">加载中…</div>';
 
-    var loader = state.chapterCache[id]
-      ? Promise.resolve(state.chapterCache[id])
-      : getJSON(meta.summary).then(function (d) { state.chapterCache[id] = d; return d; });
+    var loader = state.entryCache[id]
+      ? Promise.resolve(state.entryCache[id])
+      : getJSON(entry.summary).then(function (d) { state.entryCache[id] = d; return d; });
 
     loader.then(function (data) {
-      renderTOC(id);
+      renderTOC({ type: desc.kind, collId: desc.collId, activeId: id });
       content.innerHTML = "";
 
-      var partObj = state.manifest.parts.filter(function (p) { return p.id === data.part; })[0];
-      var partTitle = partObj ? partObj.title : (data.partLabel || "");
-      var headTitle = (typeof data.chapter === "number")
-        ? ("第 " + data.chapter + " 章 · " + data.title)
-        : data.title;
+      var eyebrow, headTitle, pills = [], rawLabel;
+      if (desc.kind === "book") {
+        var partObj = (desc.manifest.parts || []).filter(function (p) { return p.id === entry.part; })[0];
+        eyebrow = partObj ? partObj.title : (desc.coll.titleCn || desc.coll.title || "");
+        headTitle = (typeof entry.number === "number")
+          ? ("第 " + entry.number + " 章 · " + entry.title) : entry.title;
+        if (entry.ageStage) pills.push(h("span", { class: "pill" }, ["阶段：" + entry.ageStage]));
+        if (entry.pdfPages) pills.push(h("span", { class: "pill" }, ["原书 PDF 第 " + entry.pdfPages + " 页"]));
+        rawLabel = entry.pdfPages ? "raw.txt（PDF 第 " + entry.pdfPages + " 页）" : "raw.txt（无损抽取原文）";
+      } else {
+        var pod = desc.manifest.podcast || {};
+        eyebrow = (pod.show || desc.coll.show || "") + (pod.host ? " · " + pod.host : "");
+        headTitle = entry.title;
+        if (pod.guest) pills.push(h("span", { class: "pill" }, ["🎙️ " + pod.guest]));
+        if (entry.duration) pills.push(h("span", { class: "pill" }, ["⏱ " + entry.duration]));
+        if (entry.lang) pills.push(h("span", { class: "pill" }, ["🌐 " + entry.lang]));
+        if (entry.book) pills.push(h("span", { class: "pill" }, ["📘 " + entry.book]));
+        rawLabel = "英文文字稿 transcript.md";
+      }
+
       content.appendChild(h("header", { class: "chapter-head" }, [
-        h("div", { class: "chapter-eyebrow" }, [partTitle]),
+        h("div", { class: "chapter-eyebrow" }, [eyebrow]),
         h("h1", null, [headTitle]),
-        h("div", { class: "chapter-meta" }, [
-          data.ageStage ? h("span", { class: "pill" }, ["阶段：" + data.ageStage]) : null,
-          data.pdfPages ? h("span", { class: "pill" }, ["原书 PDF 第 " + data.pdfPages + " 页"]) : null
-        ])
+        h("div", { class: "chapter-meta" }, pills)
       ]));
 
       if (data.overview) content.appendChild(h("div", { class: "overview" }, [data.overview]));
@@ -183,7 +277,7 @@
           h("h2", null, [sec.heading])
         ]);
         (sec.blocks || []).forEach(function (b) {
-          secEl.appendChild(renderBlock(b, { chapterId: id }));
+          secEl.appendChild(renderBlock(b, { entryId: id }));
         });
         content.appendChild(secEl);
       });
@@ -199,78 +293,167 @@
         ]));
       }
 
-      if (meta.raw) {
+      if (entry.raw) {
         content.appendChild(h("div", { class: "raw-link" }, [
-          "需要核对原文？查看本章无损抽取的原文：",
-          h("a", { href: meta.raw, target: "_blank", rel: "noopener" }, ["raw.txt（PDF 第 " + data.pdfPages + " 页）"])
+          desc.kind === "book" ? "需要核对原文？查看本章无损抽取的原文：" : "想听原话？查看本集英文文字稿：",
+          h("a", { href: entry.raw, target: "_blank", rel: "noopener" }, [rawLabel])
         ]));
       }
 
-      if (meta.raw) {
-        content.appendChild(h("p", { class: "raw-link" }, [
-          "💡 提示：选中正文任意文字即可「画重点」并添加笔记；所有笔记可在顶部 📝 Note 标签查看。"
-        ]));
-      }
+      content.appendChild(h("p", { class: "raw-link" }, [
+        "💡 提示：选中正文任意文字即可「画重点」并添加笔记；所有笔记可在顶部 📝 Note 标签查看。"
+      ]));
 
-      content.appendChild(chapterNav(meta));
+      content.appendChild(entryNav(desc));
       applyHighlights(id);
       window.scrollTo(0, scrollY);
       if (!keepScroll) content.focus();
-      document.title = headTitle + " · 育儿百科摘要";
+      document.title = headTitle + " · 知识中心";
     }).catch(function (err) {
       content.innerHTML = "";
       content.appendChild(h("div", { class: "empty" }, [String(err.message || err)]));
     });
   }
 
-  function navLabel(entry) {
-    return (typeof entry.number === "number" ? "第" + entry.number + "章 " : "") + entry.title.replace(/^引言\s*·?\s*/, "引言 · ");
+  function navLabel(desc, entry) {
+    if (desc.kind === "book") {
+      return (typeof entry.number === "number" ? "第" + entry.number + "章 " : "") +
+        entry.title.replace(/^引言\s*·?\s*/, "引言 · ");
+    }
+    return (entry.number ? "第" + entry.number + "集 " : "") + entry.title;
   }
-  function chapterNav(meta) {
-    var order = orderedEntries();
+  function entryNav(desc) {
+    var order = collOrderedEntries(desc);
     var idx = -1;
-    order.forEach(function (e, i) { if (e.id === meta.id) idx = i; });
+    order.forEach(function (e, i) { if (e.id === desc.entry.id) idx = i; });
     var prev = idx > 0 ? order[idx - 1] : null;
     var next = idx >= 0 && idx < order.length - 1 ? order[idx + 1] : null;
     var nav = h("nav", { class: "chapter-nav" }, []);
     nav.appendChild(prev
-      ? h("a", { class: "prev", href: "#/chapter/" + prev.id }, [h("div", { class: "dir" }, ["← 上一篇"]), navLabel(prev)])
+      ? h("a", { class: "prev", href: routeForEntry(prev.id) }, [h("div", { class: "dir" }, ["← 上一篇"]), navLabel(desc, prev)])
       : h("span", null, []));
     nav.appendChild(next
-      ? h("a", { class: "next", href: "#/chapter/" + next.id }, [h("div", { class: "dir" }, ["下一篇 →"]), navLabel(next)])
+      ? h("a", { class: "next", href: routeForEntry(next.id) }, [h("div", { class: "dir" }, ["下一篇 →"]), navLabel(desc, next)])
       : h("span", null, []));
     return nav;
   }
 
-  /* ---------- 页面：首页 ---------- */
+  /* ---------- 页面：合集首页（全部书 + 全部播客） ---------- */
   function showHome() {
-    renderTOC(null);
+    renderTOC({ type: "library" });
     var content = document.getElementById("content");
     content.innerHTML = "";
-    var b = state.manifest.book;
+    var s = state.library.site || {};
     var home = h("div", { class: "home" }, [
-      h("h1", null, [b.titleCn + " · 重点摘要"]),
-      h("p", { class: "sub" }, [b.titleEn + "（" + b.edition + "，" + b.org + "）"]),
-      h("p", { class: "sub" }, ["按章节整理重点内容与值得留意的细节，持续补充中。点击下方章节开始阅读。"])
+      h("h1", null, [s.title || "孕期 + 育儿知识中心"]),
+      s.subtitle ? h("p", { class: "sub" }, [s.subtitle]) : null
+    ]);
+    home.appendChild(sectionHeading("📖 Books", "我读过的书，按章节整理的重点摘要。"));
+    home.appendChild(booksGrid());
+    home.appendChild(sectionHeading("🎙️ Podcasts", "我听过的播客，归纳讨论过的知识要点。"));
+    home.appendChild(podcastsGrid());
+    content.appendChild(home);
+    document.title = s.title || "孕期 + 育儿知识中心";
+  }
+  function sectionHeading(title, desc) {
+    return h("div", { class: "lib-heading" }, [h("h2", null, [title]), desc ? h("p", { class: "desc" }, [desc]) : null]);
+  }
+  function sourceCard(opts) {
+    var m = (opts.manifest || {});
+    var doneCount = opts.kind === "book"
+      ? bookOrderedEntries(m).length
+      : podcastOrderedEntries(m).length;
+    var unit = opts.kind === "book" ? "章" : "集";
+    return h("a", { class: "source-card", href: opts.href }, [
+      h("div", { class: "source-emoji" }, [opts.emoji]),
+      h("div", { class: "source-body" }, [
+        h("div", { class: "source-title" }, [opts.title]),
+        opts.sub ? h("div", { class: "source-sub" }, [opts.sub]) : null,
+        opts.desc ? h("p", { class: "source-desc" }, [opts.desc]) : null,
+        h("div", { class: "source-foot" }, [h("span", { class: "pill" }, ["已整理 " + doneCount + " " + unit])])
+      ])
+    ]);
+  }
+  function booksGrid() {
+    var grid = h("div", { class: "source-grid" }, []);
+    (state.library.books || []).forEach(function (b) {
+      grid.appendChild(sourceCard({
+        kind: "book", emoji: b.emoji || "📘", title: b.titleCn || b.title,
+        sub: [b.titleEn, b.edition, b.author].filter(Boolean).join(" · "),
+        desc: b.desc, href: "#/book/" + b.id, manifest: state.books[b.id]
+      }));
+    });
+    return grid;
+  }
+  function podcastsGrid() {
+    var grid = h("div", { class: "source-grid" }, []);
+    (state.library.podcasts || []).forEach(function (p) {
+      grid.appendChild(sourceCard({
+        kind: "podcast", emoji: p.emoji || "🎧", title: p.title,
+        sub: [p.show, p.guest].filter(Boolean).join(" · "),
+        desc: p.desc, href: "#/podcast/" + p.id, manifest: state.podcasts[p.id]
+      }));
+    });
+    return grid;
+  }
+
+  // Books 标签页：书籍列表
+  function showBooks() {
+    renderTOC({ type: "library" });
+    var content = document.getElementById("content");
+    content.innerHTML = "";
+    content.appendChild(h("div", { class: "home" }, [
+      h("h1", null, ["📖 Books"]),
+      h("p", { class: "sub" }, ["我读过的书，按章节整理的重点摘要。点击进入某本书。"]),
+      booksGrid()
+    ]));
+    document.title = "Books · 知识中心";
+  }
+
+  // Podcasts 标签页：播客列表
+  function showPodcasts() {
+    renderTOC({ type: "library" });
+    var content = document.getElementById("content");
+    content.innerHTML = "";
+    content.appendChild(h("div", { class: "home" }, [
+      h("h1", null, ["🎙️ Podcasts"]),
+      h("p", { class: "sub" }, ["我听过的播客，归纳讨论过的知识要点。点击进入某档播客。"]),
+      podcastsGrid()
+    ]));
+    document.title = "Podcasts · 知识中心";
+  }
+
+  // 单本书：卷首 + 各部分章节
+  function showBook(bookId) {
+    var m = state.books[bookId];
+    var b = (state.library.books || []).filter(function (x) { return x.id === bookId; })[0];
+    var content = document.getElementById("content");
+    if (!m || !b) { showBooks(); return; }
+    renderTOC({ type: "book", collId: bookId, activeId: null });
+    content.innerHTML = "";
+    var home = h("div", { class: "home" }, [
+      h("h1", null, [(b.titleCn || b.title) + " · 重点摘要"]),
+      h("p", { class: "sub" }, [[b.titleEn, b.edition, b.author].filter(Boolean).join("，")]),
+      b.desc ? h("p", { class: "sub" }, [b.desc]) : null
     ]);
 
-    (state.manifest.front || []).filter(function (f) { return f.status === "done"; }).forEach(function (f) {
+    (m.front || []).filter(function (f) { return f.status === "done"; }).forEach(function (f) {
       home.appendChild(h("div", { class: "part-card" }, [
         h("div", { class: "chip-grid" }, [
-          h("a", { class: "chip done", href: "#/chapter/" + f.id }, [f.title])
+          h("a", { class: "chip done", href: "#/book/" + bookId + "/" + f.id }, [f.title])
         ])
       ]));
     });
 
-    state.manifest.parts.forEach(function (part) {
-      var byNumber = {};
-      state.manifest.chapters.forEach(function (c) { byNumber[c.number] = c; });
+    var byNumber = {};
+    (m.chapters || []).forEach(function (c) { byNumber[c.number] = c; });
+    (m.parts || []).forEach(function (part) {
       var chips = h("div", { class: "chip-grid" }, part.chapters.map(function (num) {
         var c = byNumber[num];
         var done = c && c.status === "done";
         var a = h("a", {
           class: "chip " + (done ? "done" : "pending"),
-          href: done ? "#/chapter/" + c.id : "#/"
+          href: done ? "#/book/" + bookId + "/" + c.id : "#/book/" + bookId
         }, ["第" + num + "章 " + ((c && c.title) || "")]);
         if (!done) a.addEventListener("click", function (e) { e.preventDefault(); });
         return a;
@@ -283,7 +466,41 @@
     });
 
     content.appendChild(home);
-    document.title = b.titleCn + " · 重点摘要";
+    document.title = (b.titleCn || b.title) + " · 重点摘要";
+  }
+
+  // 单档播客：简介 + 单集列表
+  function showPodcast(pid) {
+    var m = state.podcasts[pid];
+    var p = (state.library.podcasts || []).filter(function (x) { return x.id === pid; })[0];
+    var content = document.getElementById("content");
+    if (!m || !p) { showPodcasts(); return; }
+    renderTOC({ type: "podcast", collId: pid, activeId: null });
+    content.innerHTML = "";
+    var pod = m.podcast || {};
+    var home = h("div", { class: "home" }, [
+      h("h1", null, [p.title]),
+      h("p", { class: "sub" }, [[pod.show || p.show, pod.host ? "主持：" + pod.host : null, pod.guest ? "嘉宾：" + pod.guest : null].filter(Boolean).join("　·　")]),
+      p.desc ? h("p", { class: "sub" }, [p.desc]) : null
+    ]);
+    var list = h("div", { class: "part-card" }, [h("h2", null, ["单集"])]);
+    (m.episodes || []).forEach(function (e) {
+      var done = e.status === "done";
+      var meta = [e.duration ? "⏱ " + e.duration : null, e.lang ? "🌐 " + e.lang : null].filter(Boolean).join("　");
+      var card = h("a", {
+        class: "episode-card" + (done ? "" : " pending"),
+        href: done ? "#/podcast/" + pid + "/" + e.id : "#/podcast/" + pid
+      }, [
+        h("div", { class: "episode-title" }, ["第" + (e.number || 1) + "集 · " + e.title]),
+        meta ? h("div", { class: "episode-meta" }, [meta]) : null,
+        e.book ? h("div", { class: "episode-meta" }, ["📘 " + e.book]) : null
+      ]);
+      if (!done) card.addEventListener("click", function (ev) { ev.preventDefault(); });
+      list.appendChild(card);
+    });
+    home.appendChild(list);
+    content.appendChild(home);
+    document.title = p.title + " · 播客";
   }
 
   /* ---------- 搜索 ---------- */
@@ -291,34 +508,36 @@
     q = (q || "").trim().toLowerCase();
     var content = document.getElementById("content");
     if (!q) { route(); return; }
-    renderTOC(null);
+    renderTOC({ type: "library" });
     content.innerHTML = "";
     content.appendChild(h("h1", null, ['搜索：“' + q + '”']));
 
     var hits = [];
-    state.manifest.chapters.forEach(function (c) {
-      if (c.status !== "done") return;
-      var hay = (c.title + " 第" + c.number + "章").toLowerCase();
-      if (hay.indexOf(q) >= 0) hits.push({ c: c, where: "章节标题" });
+    function consider(id, where) {
+      if (!hits.some(function (x) { return x.id === id; })) hits.push({ id: id, where: where });
+    }
+    // 标题搜索
+    Object.keys(state.index).forEach(function (id) {
+      var d = state.index[id];
+      if (d.entry.status !== "done") return;
+      var hay = (entryTitle(id) + " " + (d.coll.titleCn || d.coll.title || "") + " " + (d.coll.show || "")).toLowerCase();
+      if (hay.indexOf(q) >= 0) consider(id, d.kind === "book" ? "书 · 标题" : "播客 · 标题");
     });
-
-    // 深度搜索已加载到缓存的章节正文
-    Object.keys(state.chapterCache).forEach(function (id) {
-      var data = state.chapterCache[id];
-      var text = JSON.stringify(data).toLowerCase();
-      if (text.indexOf(q) >= 0 && !hits.some(function (x) { return x.c.id === id; })) {
-        hits.push({ c: chapterById(id), where: "章节内容" });
-      }
+    // 深度搜索：已加载到缓存的条目正文
+    Object.keys(state.entryCache).forEach(function (id) {
+      var text = JSON.stringify(state.entryCache[id]).toLowerCase();
+      if (text.indexOf(q) >= 0) consider(id, state.index[id] && state.index[id].kind === "book" ? "书 · 内容" : "播客 · 内容");
     });
 
     if (!hits.length) {
-      content.appendChild(h("p", { class: "empty" }, ["未找到匹配章节。提示：打开过的章节会被纳入全文搜索。"]));
+      content.appendChild(h("p", { class: "empty" }, ["未找到匹配项。提示：打开过的章节/单集会被纳入全文搜索。"]));
       return;
     }
+    var order = orderedEntryIds();
+    hits.sort(function (a, b) { return order.indexOf(a.id) - order.indexOf(b.id); });
     var ul = h("div", null, hits.map(function (hinfo) {
       return h("div", { class: "part-card" }, [
-        h("a", { class: "chip done", href: "#/chapter/" + hinfo.c.id },
-          ["第" + hinfo.c.number + "章 " + hinfo.c.title]),
+        h("a", { class: "chip done", href: routeForEntry(hinfo.id) }, [entryTitle(hinfo.id)]),
         h("span", { class: "pill", style: "margin-left:8px" }, [hinfo.where])
       ]);
     }));
@@ -333,12 +552,13 @@
     { name: "粉", value: "#ffc7dd" },
     { name: "蓝", value: "#bcd9ff" }
   ];
-  var sel = { range: null, text: "", chapterId: null };
+  var sel = { range: null, text: "", entryId: null };
 
   /* 笔记存储：可插拔后端。
    * - "local"：浏览器 localStorage（未登录 / 未配置账号系统时）
    * - "cloud"：Supabase，由 auth.js 通过 window.CloudNotes 提供（登录后）
-   * 渲染始终读内存缓存 notesCache（同步），写入再异步同步到后端。 */
+   * 渲染始终读内存缓存 notesCache（同步），写入再异步同步到后端。
+   * 为兼容历史笔记，note 仍以 chapterId/chapterTitle 字段存放「条目 id / 条目标题」。 */
   var notesCache = null;
   var notesMode = "local";
 
@@ -375,9 +595,10 @@
   // 供 auth.js 调用：把本机 localStorage 的笔记取出（用于迁移到账号）
   window.getLocalNotes = loadLocalNotes;
 
-  // 当前路由对应的章节 id（仅章节页有效）
-  function currentChapterId() {
-    var m = (location.hash || "").match(/^#\/chapter\/(.+)$/);
+  // 当前路由对应的条目 id（仅条目页有效）；兼容旧书签 #/chapter/<id>
+  function currentEntryId() {
+    var hash = location.hash || "";
+    var m = hash.match(/^#\/(?:book|podcast)\/[^/]+\/(.+)$/) || hash.match(/^#\/chapter\/(.+)$/);
     return m ? m[1] : null;
   }
 
@@ -437,18 +658,16 @@
     return true;
   }
 
-  // 渲染后重新套用本章已保存的重点
-  function applyHighlights(chapterId) {
+  // 渲染后重新套用本条目已保存的重点
+  function applyHighlights(entryId) {
     var content = document.getElementById("content");
-    getNotes().filter(function (n) { return n.chapterId === chapterId && n.text; }).forEach(function (n) {
+    getNotes().filter(function (n) { return n.chapterId === entryId && n.text; }).forEach(function (n) {
       if (content.querySelector('mark.hl[data-id="' + n.id + '"]')) return;
       wrapOccurrence(content, n.text, n.occ || 0, n);
     });
   }
 
-  /* 触摸 + 鼠标统一的「按下即触发」绑定：
-   * 在 iOS 上 mousedown 不可靠，需同时监听 touchstart；用 preventDefault 保住当前选区，
-   * 并用去重标记避免触摸后浏览器又合成一次 mousedown 导致重复触发。 */
+  /* 触摸 + 鼠标统一的「按下即触发」绑定 */
   function bindPress(el, handler) {
     var touched = false;
     el.addEventListener("touchstart", function (e) {
@@ -483,8 +702,8 @@
     if (bar) bar.classList.remove("show");
   }
   function onSelection() {
-    var chapterId = currentChapterId();
-    if (!chapterId) return;
+    var entryId = currentEntryId();
+    if (!entryId) return;
     var s = window.getSelection();
     if (!s || s.isCollapsed || !s.toString().trim()) { hideSelToolbar(); return; }
     var content = document.getElementById("content");
@@ -492,11 +711,9 @@
     if (!content.contains(range.commonAncestorContainer)) { hideSelToolbar(); return; }
     sel.range = range.cloneRange();
     sel.text = s.toString();
-    sel.chapterId = chapterId;
+    sel.entryId = entryId;
     var bar = document.getElementById("selToolbar");
     bar.classList.add("show");
-    // 触摸设备（iPhone/iPad）：iOS 的「拷贝/查询/翻译」系统菜单贴着选区浮动，位置由系统决定、
-    // 网页无法控制，容易盖住我们的工具条。因此把工具条固定停靠在屏幕底部——远离选区，绝不重叠。
     var coarse = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
     if (coarse) {
       bar.classList.add("docked");
@@ -504,7 +721,6 @@
       bar.style.left = "";
       return;
     }
-    // 桌面端：浮在选区上方，跟随选区定位。
     bar.classList.remove("docked");
     var rect = range.getBoundingClientRect();
     var top = rect.top + window.scrollY - bar.offsetHeight - 8;
@@ -518,14 +734,12 @@
     if (!sel.range || !sel.text.trim()) return;
     var content = document.getElementById("content");
     var text = sel.text;
-    // 计算这是本章第几次出现（用选区之前的文本计数）
     var pre = document.createRange();
     pre.setStart(content, 0);
     try { pre.setEnd(sel.range.startContainer, sel.range.startOffset); } catch (e) {}
     var occ = countOccurrences(pre.toString(), text);
-    var meta = chapterById(sel.chapterId) || {};
     var note = {
-      id: newId(), chapterId: sel.chapterId, chapterTitle: meta.title || "",
+      id: newId(), chapterId: sel.entryId, chapterTitle: entryTitle(sel.entryId),
       text: text, occ: occ, note: "", color: color, createdAt: Date.now()
     };
     upsertNote(note);
@@ -582,7 +796,7 @@
     document.getElementById("notePopDel").onclick = function () {
       removeNote(id);
       hideNotePop();
-      if (currentChapterId() === note.chapterId) showChapter(note.chapterId, true);
+      if (currentEntryId() === note.chapterId) showEntry(note.chapterId, true);
     };
   }
 
@@ -594,7 +808,7 @@
 
   /* ---------- 页面：Note ---------- */
   function showNotes() {
-    renderTOC(null);
+    renderTOC({ type: "library" });
     hideSelToolbar(); hideNotePop();
     var content = document.getElementById("content");
     content.innerHTML = "";
@@ -613,23 +827,25 @@
     ]));
 
     if (!notes.length) {
-      page.appendChild(h("p", { class: "empty" }, ["还没有笔记。打开任意章节，选中正文文字即可画重点、写笔记。"]));
+      page.appendChild(h("p", { class: "empty" }, ["还没有笔记。打开任意章节或播客单集，选中正文文字即可画重点、写笔记。"]));
       content.appendChild(page);
-      document.title = "我的笔记 · 育儿百科摘要";
+      document.title = "我的笔记 · 知识中心";
       return;
     }
 
-    // 按章节分组，保持 orderedEntries 的顺序
-    var order = orderedEntries().map(function (e) { return e.id; });
+    // 按条目分组，保持全站有序
+    var order = orderedEntryIds();
     var groups = {};
     notes.forEach(function (n) { (groups[n.chapterId] = groups[n.chapterId] || []).push(n); });
-    var ids = Object.keys(groups).sort(function (a, b) { return order.indexOf(a) - order.indexOf(b); });
+    var ids = Object.keys(groups).sort(function (a, b) {
+      var ia = order.indexOf(a), ib = order.indexOf(b);
+      return (ia < 0 ? 1e9 : ia) - (ib < 0 ? 1e9 : ib);
+    });
 
     ids.forEach(function (cid) {
-      var meta = chapterById(cid) || { title: n_title(cid) };
-      var g = h("div", { class: "notes-group" }, [
-        h("h2", null, [meta.title || cid])
-      ]);
+      var d = state.index[cid];
+      var title = d ? ((d.kind === "book" ? "📖 " : "🎙️ ") + (d.coll.titleCn || d.coll.title || "") + " · " + entryTitle(cid)) : (groups[cid][0].chapterTitle || cid);
+      var g = h("div", { class: "notes-group" }, [h("h2", null, [title])]);
       groups[cid].sort(function (a, b) { return (a.occ || 0) - (b.occ || 0) || a.createdAt - b.createdAt; });
       groups[cid].forEach(function (n) {
         var quote = h("p", { class: "hl-quote" }, [n.text]);
@@ -640,7 +856,7 @@
           quote,
           h("p", { class: "note-text" + (n.note ? "" : " empty") }, [n.note || "（无笔记）"]),
           h("div", { class: "meta" }, [
-            h("a", { href: "#/chapter/" + n.chapterId }, ["跳到原文 →"]),
+            h("a", { href: routeForEntry(n.chapterId) }, ["跳到原文 →"]),
             delBtn
           ])
         ]));
@@ -648,9 +864,8 @@
       page.appendChild(g);
     });
     content.appendChild(page);
-    document.title = "我的笔记 · 育儿百科摘要";
+    document.title = "我的笔记 · 知识中心";
   }
-  function n_title(cid) { var m = chapterById(cid); return m ? m.title : cid; }
   function copyAllNotes(notes) {
     var lines = notes.map(function (n) {
       return "【" + (n.chapterTitle || n.chapterId) + "】\n> " + n.text + (n.note ? "\n笔记：" + n.note : "") + "\n";
@@ -661,9 +876,13 @@
   }
 
   function setActiveTab() {
-    var isNotes = /^#\/notes/.test(location.hash || "");
+    var hash = location.hash || "";
+    var active = "";
+    if (/^#\/notes/.test(hash)) active = "notes";
+    else if (/^#\/podcasts?(\/|$)/.test(hash)) active = "podcasts";
+    else if (/^#\/books?(\/|$)/.test(hash)) active = "books";
     document.querySelectorAll(".tabs .tab").forEach(function (t) {
-      t.classList.toggle("active", t.getAttribute("data-tab") === (isNotes ? "notes" : "read"));
+      t.classList.toggle("active", t.getAttribute("data-tab") === active);
     });
   }
 
@@ -673,10 +892,19 @@
     hideSelToolbar(); hideNotePop();
     setActiveTab();
     var hash = location.hash || "#/";
+    var m;
     if (/^#\/notes/.test(hash)) { showNotes(); return; }
-    var m = hash.match(/^#\/chapter\/(.+)$/);
-    if (m) showChapter(m[1]);
-    else showHome();
+    if ((m = hash.match(/^#\/book\/([^/]+)\/(.+)$/))) { showEntry(m[2]); return; }
+    if ((m = hash.match(/^#\/book\/([^/]+)\/?$/))) { showBook(m[1]); return; }
+    if (/^#\/books\/?$/.test(hash)) { showBooks(); return; }
+    if ((m = hash.match(/^#\/podcast\/([^/]+)\/(.+)$/))) { showEntry(m[2]); return; }
+    if ((m = hash.match(/^#\/podcast\/([^/]+)\/?$/))) { showPodcast(m[1]); return; }
+    if (/^#\/podcasts\/?$/.test(hash)) { showPodcasts(); return; }
+    // 兼容旧书签：#/chapter/<id> → 定位到条目
+    if ((m = hash.match(/^#\/chapter\/(.+)$/))) {
+      if (state.index[m[1]]) { location.replace(routeForEntry(m[1])); return; }
+    }
+    showHome();
   }
 
   /* ---------- 侧边栏（移动端） ---------- */
@@ -701,6 +929,35 @@
   }
 
   /* ---------- 启动 ---------- */
+  function loadLibrary() {
+    return getJSON("content/library.json").then(function (lib) {
+      state.library = lib;
+      var jobs = [];
+      (lib.books || []).forEach(function (b) {
+        jobs.push(getJSON(b.manifest).then(function (m) { state.books[b.id] = m; }));
+      });
+      (lib.podcasts || []).forEach(function (p) {
+        jobs.push(getJSON(p.manifest).then(function (m) { state.podcasts[p.id] = m; }));
+      });
+      return Promise.all(jobs);
+    }).then(function () {
+      // 建立全局条目索引（笔记据此关联与跳转）
+      state.index = {};
+      (state.library.books || []).forEach(function (b) {
+        var m = state.books[b.id] || {};
+        (m.front || []).concat(m.chapters || []).forEach(function (e) {
+          state.index[e.id] = { kind: "book", collId: b.id, coll: b, manifest: m, entry: e };
+        });
+      });
+      (state.library.podcasts || []).forEach(function (p) {
+        var m = state.podcasts[p.id] || {};
+        (m.episodes || []).forEach(function (e) {
+          state.index[e.id] = { kind: "podcast", collId: p.id, coll: p, manifest: m, entry: e };
+        });
+      });
+    });
+  }
+
   function init() {
     initTheme();
     document.getElementById("navToggle").addEventListener("click", openSidebar);
@@ -720,8 +977,6 @@
     buildNotePop();
     var content = document.getElementById("content");
     content.addEventListener("mouseup", function () { setTimeout(onSelection, 0); });
-    // iOS（iPhone/iPad）用触摸手柄选字时不会触发 mouseup，改由 selectionchange 驱动；
-    // 选区在拖动过程中会持续变化，防抖到松手稳定后再弹出工具条。
     var selTimer = null;
     document.addEventListener("selectionchange", function () {
       if (selTimer) clearTimeout(selTimer);
@@ -736,19 +991,16 @@
     };
     document.addEventListener("mousedown", dismiss);
     document.addEventListener("touchstart", dismiss, { passive: true });
-    // 桌面端浮动工具条随选区定位，滚动后会错位，故滚动即隐藏；触摸端是底部停靠的固定条，
-    // iOS 选字后常自动滚动把选区带入视野，若此时隐藏会很突兀，故触摸端不随滚动隐藏。
     window.addEventListener("scroll", function () {
       var coarse = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
       if (!coarse) hideSelToolbar();
     }, { passive: true });
 
-    getJSON("content/manifest.json").then(function (m) {
-      state.manifest = m;
+    loadLibrary().then(function () {
       route();
     }).catch(function (err) {
       document.getElementById("content").innerHTML =
-        '<div class="empty">无法加载目录 content/manifest.json：' + esc(String(err.message || err)) +
+        '<div class="empty">无法加载目录 content/library.json：' + esc(String(err.message || err)) +
         '<br>若在本地直接双击打开，请改用本地服务器：<code>python3 -m http.server</code></div>';
     });
   }

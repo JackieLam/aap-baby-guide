@@ -1,0 +1,31 @@
+{
+  "site": {
+    "title": "孕期 + 育儿知识中心",
+    "subtitle": "汇总书本、播客及各类来源的孕期与育儿知识，持续整理与补充。",
+    "note": "本站为个人学习用的知识摘要与笔记，原文/音频版权归原作者及出版方所有。"
+  },
+  "books": [
+    {
+      "id": "aap",
+      "emoji": "👶",
+      "titleCn": "美国儿科学会育儿百科",
+      "titleEn": "Caring for Your Baby and Young Child: Birth to Age 5",
+      "edition": "第 7 版",
+      "author": "American Academy of Pediatrics (AAP)",
+      "desc": "按章节整理的重点摘要，覆盖孕期到 5 岁的护理、喂养、各年龄段发育、早教与安全。",
+      "manifest": "content/books/aap/manifest.json"
+    }
+  ],
+  "podcasts": [
+    {
+      "id": "doac-pregnancy-glucose",
+      "emoji": "🎙️",
+      "title": "孕期饮食如何重塑宝宝的一生",
+      "show": "The Diary of a CEO",
+      "host": "Steven Bartlett",
+      "guest": "Jessie Inchauspé（血糖女神 · 生物化学家）",
+      "desc": "围绕新书《9 Months That Count Forever》，讲解孕期饮食、血糖与表观遗传如何塑造宝宝一生，并给出对所有人都适用的降血糖技巧。",
+      "manifest": "content/podcasts/doac-pregnancy-glucose/manifest.json"
+    }
+  ]
+}
