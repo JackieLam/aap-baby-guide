@@ -320,10 +320,11 @@ mark.hl.has-note { border-bottom: 2px solid var(--brand); }
 .notes-toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 20px; }
 .notes-group { margin: 22px 0; }
 .notes-group h2 { font-size: 17px; border-left: 5px solid var(--brand); padding-left: 10px; margin-bottom: 10px; }
-.note-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; margin: 10px 0; box-shadow: var(--shadow); }
+.note-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; margin: 10px 0; box-shadow: var(--shadow); line-height: 1.55; }
 .note-card .hl-quote { border-left: 3px solid; padding-left: 10px; margin: 0 0 6px; }
 .note-card .note-text { margin: 6px 0 0; }
-.note-card .note-text.empty { color: var(--text-soft); font-style: italic; }
+/* 无笔记时完全不占空间：隐藏占位文字，仅保留引用 + 操作行 */
+.note-card .note-text.empty { display: none; }
 .note-card .meta { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 12px; color: var(--text-soft); }
 .note-card .meta a { color: var(--accent); text-decoration: none; }
 .note-card .meta button { border: none; background: transparent; color: var(--warn-text); cursor: pointer; font-size: 12px; }
