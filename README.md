@@ -4,11 +4,12 @@
 
 > 本站为个人学习用的知识摘要与笔记。原书/音频版权归原作者及出版方所有；每章附带的 `raw.txt` / `transcript.md` 为无损抽取的原文/文字稿，仅用于检索与核对。
 
-顶部分四个标签：
+顶部分五个标签：
 
 - **📖 Books** —— 我读过的书，按章节整理的重点摘要。首本为《美国儿科学会育儿百科（第 7 版）》，后续会引入更多书。
 - **🎙️ Podcasts** —— 我听过的播客，归纳讨论过的知识要点（同样支持画重点、记笔记）。
 - **🗂️ 其他** —— 讲座、会议、视频等其他来源的知识整理（扁平条目，每条标注来源类型与原始链接）。
+- **📕 小红书** —— 小红书笔记的提取与总结（含安全性标注），扁平条目，附原始链接。
 - **📝 Note** —— 跨所有来源的个人笔记汇总。
 
 ## 在线访问
@@ -47,10 +48,14 @@ aap-baby-guide/
 │   │       └── episodes/epNN/
 │   │           ├── summary.json    # 结构化人读摘要
 │   │           └── transcript.md   # 英文文字稿（供检索/核对）
-│   └── others/                     # 「其他」来源：扁平条目（讲座/会议/视频等）
-│       └── <other-id>/
-│           ├── summary.json        # 结构化人读摘要
-│           └── raw.txt             # 原始文字稿（供检索/核对）
+│   ├── others/                     # 「其他」来源：扁平条目（讲座/会议/视频等）
+│   │   └── <other-id>/
+│   │       ├── summary.json        # 结构化人读摘要
+│   │       └── raw.txt             # 原始文字稿（供检索/核对）
+│   └── xiaohongshu/                # 「小红书」来源：扁平条目
+│       └── <xhs-id>/
+│           ├── summary.json        # 结构化人读摘要（含安全性标注）
+│           └── raw.txt             # 字幕 + 语音转写的原始抽取记录
 ├── scripts/
 │   └── extract_chapter.sh          # 从 PDF 抽取某章原文的辅助脚本
 └── README.md
@@ -83,6 +88,10 @@ aap-baby-guide/
 1. 在 `content/others/<other-id>/` 下放好 `summary.json`（结构同下方 schema）与 `raw.txt`（原始文字稿）。
 2. 在 `content/library.json` 的 `others` 数组里登记一行：`id` / `emoji` / `title` / `type`（来源类型，如「腾讯会议」）/ `source` / `link`（原始链接）/ `desc` / `status` / `summary` / `raw`。
 3. 把 `status` 设为 `"done"`，顶部「🗂️ 其他」标签、首页、搜索、笔记都会自动包含它。
+
+### 新增一条「小红书」来源（零改码）
+
+与「其他」同为扁平来源，结构一致，只是登记到 `content/library.json` 的 `xiaohongshu` 数组、内容放 `content/xiaohongshu/<xhs-id>/{summary.json,raw.txt}`，`type` 填「小红书」、`link` 填原链接。涉及婴幼儿内容需按权威安全原则标注风险。可配合项目技能 `/xhs-extract` 自动抓取与转写小红书视频/图文。
 
 ### summary.json 的内容块（block）类型
 

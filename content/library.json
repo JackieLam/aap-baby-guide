@@ -41,5 +41,19 @@
       "summary": "content/others/other-pregnancy-weight/summary.json",
       "raw": "content/others/other-pregnancy-weight/raw.txt"
     }
+  ],
+  "xiaohongshu": [
+    {
+      "id": "xhs-baby-sleep-hacks",
+      "emoji": "📕",
+      "title": "网上学到的「婴王哄睡」方法，真的有效吗？",
+      "type": "小红书",
+      "source": "labi小羊（小月龄）",
+      "link": "https://www.xiaohongshu.com/explore/6ab9db82000000001c01d846",
+      "desc": "一条约 70 秒、标注「人工智能生成」的网红哄睡视频：丝袜套宝宝、手套当手压、吹风机白噪音等土办法。本页整理其内容并标注安全风险——多数做法有窒息风险，请勿照做。",
+      "status": "done",
+      "summary": "content/xiaohongshu/xhs-baby-sleep-hacks/summary.json",
+      "raw": "content/xiaohongshu/xhs-baby-sleep-hacks/raw.txt"
+    }
   ]
 }

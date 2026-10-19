@@ -55,17 +55,21 @@
   function podcastOrderedEntries(m) {
     return (m.episodes || []).filter(function (e) { return e.status === "done"; });
   }
-  // 「其他」是扁平来源：每个条目本身即一条内容（无子合集），done 的条目直接登记
+  // 扁平来源（「其他」「小红书」）：每个条目本身即一条内容（无子合集），done 的条目直接登记
   function othersOrderedEntries() {
     return (state.library.others || []).filter(function (o) { return o.status === "done"; });
+  }
+  function xhsOrderedEntries() {
+    return (state.library.xiaohongshu || []).filter(function (o) { return o.status === "done"; });
   }
   // 某条目所在合集的有序条目（用于上一/下一篇）
   function collOrderedEntries(desc) {
     if (desc.kind === "book") return bookOrderedEntries(desc.manifest);
     if (desc.kind === "other") return othersOrderedEntries();
+    if (desc.kind === "xhs") return xhsOrderedEntries();
     return podcastOrderedEntries(desc.manifest);
   }
-  // 全站有序条目 id（书 → 播客 → 其他；用于笔记分组排序）
+  // 全站有序条目 id（书 → 播客 → 其他 → 小红书；用于笔记分组排序）
   function orderedEntryIds() {
     var ids = [];
     (state.library.books || []).forEach(function (b) {
@@ -75,11 +79,14 @@
       podcastOrderedEntries(state.podcasts[p.id] || {}).forEach(function (e) { ids.push(e.id); });
     });
     othersOrderedEntries().forEach(function (e) { ids.push(e.id); });
+    xhsOrderedEntries().forEach(function (e) { ids.push(e.id); });
     return ids;
   }
   function entryDesc(id) { return state.index[id]; }
-  function kindLabel(kind) { return kind === "book" ? "书" : kind === "other" ? "其他" : "播客"; }
-  function kindEmoji(kind) { return kind === "book" ? "📖 " : kind === "other" ? "🗂️ " : "🎙️ "; }
+  function kindLabel(kind) { return kind === "book" ? "书" : kind === "other" ? "其他" : kind === "xhs" ? "小红书" : "播客"; }
+  function kindEmoji(kind) { return kind === "book" ? "📖 " : kind === "other" ? "🗂️ " : kind === "xhs" ? "📕 " : "🎙️ "; }
+  // 扁平来源（条目即合集）统一判断
+  function isFlatKind(kind) { return kind === "other" || kind === "xhs"; }
   function entryTitle(id) {
     var d = state.index[id];
     if (!d) return id;
@@ -91,6 +98,7 @@
     var d = state.index[id];
     if (!d) return "#/";
     if (d.kind === "other") return "#/other/" + id;
+    if (d.kind === "xhs") return "#/xhs/" + id;
     return (d.kind === "book" ? "#/book/" : "#/podcast/") + d.collId + "/" + id;
   }
 
@@ -103,6 +111,7 @@
     if (ctx.type === "book") { renderBookTOC(ctx.collId, ctx.activeId); return; }
     if (ctx.type === "podcast") { renderPodcastTOC(ctx.collId, ctx.activeId); return; }
     if (ctx.type === "other") { renderOtherTOC(ctx.activeId); return; }
+    if (ctx.type === "xhs") { renderXhsTOC(ctx.activeId); return; }
 
     // 合集首页 / 笔记页：列出全部书、播客与其他
     var lib = state.library;
@@ -127,21 +136,37 @@
           [h("span", { class: "num" }, [o.emoji || "🗂️"]), o.title]));
       });
     }
+    if (lib.xiaohongshu && lib.xiaohongshu.length) {
+      toc.appendChild(h("h3", null, ["📕 小红书"]));
+      lib.xiaohongshu.forEach(function (o) {
+        toc.appendChild(h("a", { href: "#/xhs/" + o.id },
+          [h("span", { class: "num" }, [o.emoji || "📕"]), o.title]));
+      });
+    }
   }
 
-  function renderOtherTOC(activeId) {
+  // 扁平来源的侧边目录（「其他」「小红书」通用）
+  function renderFlatTOC(opts) {
     var toc = document.getElementById("toc");
-    toc.appendChild(h("a", { href: "#/others", class: "toc-back" }, ["← 所有其他来源"]));
-    toc.appendChild(h("h3", null, ["🗂️ 其他"]));
-    (state.library.others || []).forEach(function (o) {
+    toc.appendChild(h("a", { href: opts.listRoute, class: "toc-back" }, [opts.back]));
+    toc.appendChild(h("h3", null, [opts.heading]));
+    (opts.items || []).forEach(function (o) {
       var done = o.status === "done";
       var a = h("a", {
-        href: done ? "#/other/" + o.id : "#/others",
-        class: (done ? "" : "pending") + (o.id === activeId ? " active" : "")
-      }, [h("span", { class: "num" }, [o.emoji || "🗂️"]), o.title]);
+        href: done ? opts.entryPrefix + o.id : opts.listRoute,
+        class: (done ? "" : "pending") + (o.id === opts.activeId ? " active" : "")
+      }, [h("span", { class: "num" }, [o.emoji || opts.fallbackEmoji]), o.title]);
       if (!done) a.addEventListener("click", function (ev) { ev.preventDefault(); });
       toc.appendChild(a);
     });
+  }
+  function renderOtherTOC(activeId) {
+    renderFlatTOC({ items: state.library.others, activeId: activeId, listRoute: "#/others",
+      entryPrefix: "#/other/", heading: "🗂️ 其他", back: "← 所有其他来源", fallbackEmoji: "🗂️" });
+  }
+  function renderXhsTOC(activeId) {
+    renderFlatTOC({ items: state.library.xiaohongshu, activeId: activeId, listRoute: "#/xiaohongshu",
+      entryPrefix: "#/xhs/", heading: "📕 小红书", back: "← 所有小红书", fallbackEmoji: "📕" });
   }
 
   function renderBookTOC(bookId, activeId) {
@@ -286,13 +311,13 @@
         if (entry.ageStage) pills.push(h("span", { class: "pill" }, ["阶段：" + entry.ageStage]));
         if (entry.pdfPages) pills.push(h("span", { class: "pill" }, ["原书 PDF 第 " + entry.pdfPages + " 页"]));
         rawLabel = entry.pdfPages ? "raw.txt（PDF 第 " + entry.pdfPages + " 页）" : "raw.txt（无损抽取原文）";
-      } else if (desc.kind === "other") {
-        eyebrow = entry.type || "其他来源";
+      } else if (isFlatKind(desc.kind)) {
+        eyebrow = entry.type || (desc.kind === "xhs" ? "小红书" : "其他来源");
         headTitle = entry.title;
         if (entry.type) pills.push(h("span", { class: "pill" }, ["📌 " + entry.type]));
         if (entry.source) pills.push(h("span", { class: "pill" }, ["🗣️ " + entry.source]));
         if (entry.link) pills.push(h("a", { class: "pill", href: entry.link, target: "_blank", rel: "noopener" }, ["🔗 打开" + (entry.type || "链接")]));
-        rawLabel = "原始文字稿 raw.txt";
+        rawLabel = desc.kind === "xhs" ? "原始抽取记录 raw.txt" : "原始文字稿 raw.txt";
       } else {
         var pod = desc.manifest.podcast || {};
         eyebrow = (pod.show || desc.coll.show || "") + (pod.host ? " · " + pod.host : "");
@@ -310,7 +335,7 @@
         h("div", { class: "chapter-meta" }, pills)
       ]));
 
-      if (desc.kind === "other" && entry.link) {
+      if (isFlatKind(desc.kind) && entry.link) {
         content.appendChild(h("div", { class: "raw-link" }, [
           "来源（" + (entry.type || "链接") + "）：",
           h("a", { href: entry.link, target: "_blank", rel: "noopener" }, [entry.link])
@@ -342,6 +367,7 @@
 
       if (entry.raw) {
         var rawLead = desc.kind === "book" ? "需要核对原文？查看本章无损抽取的原文："
+          : desc.kind === "xhs" ? "想核对原片？查看字幕 + 语音转写的原始抽取记录："
           : desc.kind === "other" ? "想看完整原话？查看本次分享的文字稿："
           : "想听原话？查看本集英文文字稿：";
         content.appendChild(h("div", { class: "raw-link" }, [
@@ -406,6 +432,10 @@
       home.appendChild(sectionHeading("🗂️ 其他", "来自讲座、会议、视频等其他来源的知识整理。"));
       home.appendChild(othersGrid());
     }
+    if ((state.library.xiaohongshu || []).length) {
+      home.appendChild(sectionHeading("📕 小红书", "小红书笔记的提取与总结（含安全性标注）。"));
+      home.appendChild(xhsGrid());
+    }
     content.appendChild(home);
     document.title = s.title || "孕期 + 育儿知识中心";
   }
@@ -450,13 +480,13 @@
     });
     return grid;
   }
-  // 「其他」是扁平条目，卡片直接指向该条目的阅读页，并标注来源类型（如腾讯会议）
-  function othersGrid() {
+  // 扁平条目（「其他」「小红书」）的卡片：直接指向该条目的阅读页，并标注来源类型
+  function flatGrid(items, entryPrefix, listRoute, fallbackEmoji) {
     var grid = h("div", { class: "source-grid" }, []);
-    (state.library.others || []).forEach(function (o) {
+    (items || []).forEach(function (o) {
       var done = o.status === "done";
-      grid.appendChild(h("a", { class: "source-card" + (done ? "" : " pending"), href: done ? "#/other/" + o.id : "#/others" }, [
-        h("div", { class: "source-emoji" }, [o.emoji || "🗂️"]),
+      grid.appendChild(h("a", { class: "source-card" + (done ? "" : " pending"), href: done ? entryPrefix + o.id : listRoute }, [
+        h("div", { class: "source-emoji" }, [o.emoji || fallbackEmoji]),
         h("div", { class: "source-body" }, [
           h("div", { class: "source-title" }, [o.title]),
           o.source ? h("div", { class: "source-sub" }, [o.source]) : null,
@@ -470,6 +500,8 @@
     });
     return grid;
   }
+  function othersGrid() { return flatGrid(state.library.others, "#/other/", "#/others", "🗂️"); }
+  function xhsGrid() { return flatGrid(state.library.xiaohongshu, "#/xhs/", "#/xiaohongshu", "📕"); }
 
   // Books 标签页：书籍列表
   function showBooks() {
@@ -508,6 +540,19 @@
       othersGrid()
     ]));
     document.title = "其他 · 知识中心";
+  }
+
+  // 小红书标签页：小红书笔记列表
+  function showXhs() {
+    renderTOC({ type: "library" });
+    var content = document.getElementById("content");
+    content.innerHTML = "";
+    content.appendChild(h("div", { class: "home" }, [
+      h("h1", null, ["📕 小红书"]),
+      h("p", { class: "sub" }, ["小红书笔记的提取与总结（含安全性标注，网红做法请谨慎对待）。点击进入某一条。"]),
+      xhsGrid()
+    ]));
+    document.title = "小红书 · 知识中心";
   }
 
   // 单本书：卷首 + 各部分章节
@@ -685,7 +730,7 @@
   // 当前路由对应的条目 id（仅条目页有效）；兼容旧书签 #/chapter/<id>
   function currentEntryId() {
     var hash = location.hash || "";
-    var m = hash.match(/^#\/(?:book|podcast)\/[^/]+\/(.+)$/) || hash.match(/^#\/other\/(.+)$/) || hash.match(/^#\/chapter\/(.+)$/);
+    var m = hash.match(/^#\/(?:book|podcast)\/[^/]+\/(.+)$/) || hash.match(/^#\/(?:other|xhs)\/(.+)$/) || hash.match(/^#\/chapter\/(.+)$/);
     return m ? m[1] : null;
   }
 
@@ -931,7 +976,7 @@
 
     ids.forEach(function (cid) {
       var d = state.index[cid];
-      var title = d ? (kindEmoji(d.kind) + (d.kind === "other" ? entryTitle(cid) : (d.coll.titleCn || d.coll.title || "") + " · " + entryTitle(cid))) : (groups[cid][0].chapterTitle || cid);
+      var title = d ? (kindEmoji(d.kind) + (isFlatKind(d.kind) ? entryTitle(cid) : (d.coll.titleCn || d.coll.title || "") + " · " + entryTitle(cid))) : (groups[cid][0].chapterTitle || cid);
       var g = h("div", { class: "notes-group" }, [h("h2", null, [title])]);
       groups[cid].sort(function (a, b) { return (a.occ || 0) - (b.occ || 0) || a.createdAt - b.createdAt; });
       groups[cid].forEach(function (n) {
@@ -966,6 +1011,7 @@
     var hash = location.hash || "";
     var active = "";
     if (/^#\/notes/.test(hash)) active = "notes";
+    else if (/^#\/(?:xiaohongshu|xhs)(\/|$)/.test(hash)) active = "xhs";
     else if (/^#\/others?(\/|$)/.test(hash)) active = "others";
     else if (/^#\/podcasts?(\/|$)/.test(hash)) active = "podcasts";
     else if (/^#\/books?(\/|$)/.test(hash)) active = "books";
@@ -990,6 +1036,8 @@
     if (/^#\/podcasts\/?$/.test(hash)) { showPodcasts(); return; }
     if (/^#\/others\/?$/.test(hash)) { showOthers(); return; }
     if ((m = hash.match(/^#\/other\/(.+)$/))) { showEntry(m[1]); return; }
+    if (/^#\/xiaohongshu\/?$/.test(hash)) { showXhs(); return; }
+    if ((m = hash.match(/^#\/xhs\/(.+)$/))) { showEntry(m[1]); return; }
     // 兼容旧书签：#/chapter/<id> → 定位到条目
     if ((m = hash.match(/^#\/chapter\/(.+)$/))) {
       if (state.index[m[1]]) { location.replace(routeForEntry(m[1])); return; }
@@ -1045,9 +1093,12 @@
           state.index[e.id] = { kind: "podcast", collId: p.id, coll: p, manifest: m, entry: e };
         });
       });
-      // 「其他」是扁平条目：条目本身即合集（coll 指向自身，无 manifest）
+      // 扁平条目（「其他」「小红书」）：条目本身即合集（coll 指向自身，无 manifest）
       (state.library.others || []).forEach(function (o) {
         state.index[o.id] = { kind: "other", collId: o.id, coll: o, manifest: null, entry: o };
+      });
+      (state.library.xiaohongshu || []).forEach(function (o) {
+        state.index[o.id] = { kind: "xhs", collId: o.id, coll: o, manifest: null, entry: o };
       });
     });
   }
