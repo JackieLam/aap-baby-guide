@@ -326,6 +326,7 @@
         if (entry.duration) pills.push(h("span", { class: "pill" }, ["⏱ " + entry.duration]));
         if (entry.lang) pills.push(h("span", { class: "pill" }, ["🌐 " + entry.lang]));
         if (entry.book) pills.push(h("span", { class: "pill" }, ["📘 " + entry.book]));
+        if (entry.link) pills.push(h("a", { class: "pill", href: entry.link, target: "_blank", rel: "noopener" }, ["🔗 Apple Podcasts"]));
         rawLabel = "英文文字稿 transcript.md";
       }
 
@@ -344,9 +345,9 @@
         content.appendChild(h("div", { class: "note-video-wrap" }, [vid]));
       }
 
-      if (isFlatKind(desc.kind) && entry.link) {
+      if (entry.link) {
         content.appendChild(h("div", { class: "raw-link" }, [
-          "来源（" + (entry.type || "链接") + "）：",
+          "来源（" + (isFlatKind(desc.kind) ? (entry.type || "链接") : "Apple Podcasts") + "）：",
           h("a", { href: entry.link, target: "_blank", rel: "noopener" }, [entry.link])
         ]));
       }

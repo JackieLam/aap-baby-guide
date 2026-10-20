@@ -1,0 +1,23 @@
+{
+  "podcast": {
+    "title": "园丁与木匠：如何养育一个人",
+    "show": "Hidden Brain（NPR）",
+    "host": "Shankar Vedantam",
+    "guest": "Alison Gopnik（加州大学伯克利分校 心理学与哲学教授）",
+    "note": "本页为个人学习用的要点整理，内容版权归播客及嘉宾所有。附带的英文文字稿（transcript）仅供检索与核对。"
+  },
+  "episodes": [
+    {
+      "id": "hidden-brain-gardener-carpenter-ep01",
+      "number": 1,
+      "title": "园丁 vs. 木匠：两种育儿模式及其后果",
+      "book": "《The Gardener and the Carpenter（园丁与木匠）》",
+      "duration": "27:33",
+      "lang": "英语",
+      "status": "done",
+      "link": "https://podcasts.apple.com/us/podcast/hidden-brain/id1028908750?l=zh-Hans-CN&i=1000412453594",
+      "summary": "content/podcasts/hidden-brain-gardener-carpenter/episodes/ep01/summary.json",
+      "raw": "content/podcasts/hidden-brain-gardener-carpenter/episodes/ep01/transcript.md"
+    }
+  ]
+}
