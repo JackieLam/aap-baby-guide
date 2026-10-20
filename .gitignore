@@ -1,2 +1,6 @@
 .DS_Store
 node_modules/
+
+# podcast-extract: Apple Bearer token 缓存（敏感，30 天有效，勿提交）与下载中间产物
+scripts/podcast-extract/bin/bearer_token.txt
+scripts/podcast-extract/bin/transcript_*.ttml
