@@ -26,6 +26,16 @@
       "guest": "Jessie Inchauspé（血糖女神 · 生物化学家）",
       "desc": "围绕新书《9 Months That Count Forever》，讲解孕期饮食、血糖与表观遗传如何塑造宝宝一生，并给出对所有人都适用的降血糖技巧。",
       "manifest": "content/podcasts/doac-pregnancy-glucose/manifest.json"
+    },
+    {
+      "id": "hidden-brain-gardener-carpenter",
+      "emoji": "🌱",
+      "title": "园丁与木匠：如何养育一个人",
+      "show": "Hidden Brain（NPR）",
+      "host": "Shankar Vedantam",
+      "guest": "Alison Gopnik（UC Berkeley 心理学与哲学教授）",
+      "desc": "围绕著作《The Gardener and the Carpenter》，对比“园丁式”与“木匠式”两种育儿模式——与其把孩子塑造成预设产物，不如营造让孩子自由探索、冒险与玩耍的生态。",
+      "manifest": "content/podcasts/hidden-brain-gardener-carpenter/manifest.json"
     }
   ],
   "others": [
