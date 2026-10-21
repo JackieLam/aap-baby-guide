@@ -22,13 +22,50 @@
       "id": "part1",
       "title": "第一部分 · 从孕期到 5 岁",
       "desc": "按阶段讲解孕期准备、新生儿护理、喂养、各年龄段发育与养育、早教、安全等。",
-      "chapters": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+      "chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ]
     },
     {
       "id": "part2",
       "title": "第二部分 · 常见健康问题手册",
       "desc": "按身体系统/症状组织的疾病与急症速查。",
-      "chapters": [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35]
+      "chapters": [
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35
+      ]
     }
   ],
   "chapters": [
@@ -196,6 +233,226 @@
       "status": "done",
       "summary": "content/books/aap/chapters/ch15/summary.json",
       "raw": "content/books/aap/chapters/ch15/raw.txt"
+    },
+    {
+      "id": "ch16",
+      "number": 16,
+      "part": "part2",
+      "title": "腹部、消化道问题",
+      "ageStage": "腹部与消化",
+      "pdfPages": "648-686",
+      "status": "done",
+      "summary": "content/books/aap/chapters/ch16/summary.json",
+      "raw": "content/books/aap/chapters/ch16/raw.txt"
+    },
+    {
+      "id": "ch17",
+      "number": 17,
+      "part": "part2",
+      "title": "哮喘和过敏",
+      "ageStage": "哮喘与过敏",
+      "pdfPages": "687-710",
+      "status": "done",
+      "summary": "content/books/aap/chapters/ch17/summary.json",
+      "raw": "content/books/aap/chapters/ch17/raw.txt"
+    },
+    {
+      "id": "ch18",
+      "number": 18,
+      "part": "part2",
+      "title": "行为",
+      "ageStage": "行为问题",
+      "pdfPages": "711-732",
+      "status": "done",
+      "summary": "content/books/aap/chapters/ch18/summary.json",
+      "raw": "content/books/aap/chapters/ch18/raw.txt"
+    },
+    {
+      "id": "ch19",
+      "number": 19,
+      "part": "part2",
+      "title": "胸部和肺部问题",
+      "ageStage": "胸部与肺部",
+      "pdfPages": "733-752",
+      "status": "done",
+      "summary": "content/books/aap/chapters/ch19/summary.json",
+      "raw": "content/books/aap/chapters/ch19/raw.txt"
+    },
+    {
+      "id": "ch20",
+      "number": 20,
+      "part": "part2",
+      "title": "慢性健康问题和慢性疾病",
+      "ageStage": "慢性疾病",
+      "pdfPages": "753-775",
+      "status": "done",
+      "summary": "content/books/aap/chapters/ch20/summary.json",
+      "raw": "content/books/aap/chapters/ch20/raw.txt"
+    },
+    {
+      "id": "ch21",
+      "number": 21,
+      "part": "part2",
+      "title": "发育障碍",
+      "ageStage": "发育障碍",
+      "pdfPages": "776-801",
+      "status": "done",
+      "summary": "content/books/aap/chapters/ch21/summary.json",
+      "raw": "content/books/aap/chapters/ch21/raw.txt"
+    },
+    {
+      "id": "ch22",
+      "number": 22,
+      "part": "part2",
+      "title": "耳、鼻、咽喉问题",
+      "ageStage": "耳鼻咽喉",
+      "pdfPages": "802-829",
+      "status": "done",
+      "summary": "content/books/aap/chapters/ch22/summary.json",
+      "raw": "content/books/aap/chapters/ch22/raw.txt"
+    },
+    {
+      "id": "ch23",
+      "number": 23,
+      "part": "part2",
+      "title": "急诊",
+      "ageStage": "急救与急诊",
+      "pdfPages": "830-858",
+      "status": "done",
+      "summary": "content/books/aap/chapters/ch23/summary.json",
+      "raw": "content/books/aap/chapters/ch23/raw.txt"
+    },
+    {
+      "id": "ch24",
+      "number": 24,
+      "part": "part2",
+      "title": "环境与健康",
+      "ageStage": "环境健康",
+      "pdfPages": "859-874",
+      "status": "done",
+      "summary": "content/books/aap/chapters/ch24/summary.json",
+      "raw": "content/books/aap/chapters/ch24/raw.txt"
+    },
+    {
+      "id": "ch25",
+      "number": 25,
+      "part": "part2",
+      "title": "眼部问题",
+      "ageStage": "眼部",
+      "pdfPages": "875-888",
+      "status": "done",
+      "summary": "content/books/aap/chapters/ch25/summary.json",
+      "raw": "content/books/aap/chapters/ch25/raw.txt"
+    },
+    {
+      "id": "ch26",
+      "number": 26,
+      "part": "part2",
+      "title": "家庭问题",
+      "ageStage": "家庭问题",
+      "pdfPages": "889-915",
+      "status": "done",
+      "summary": "content/books/aap/chapters/ch26/summary.json",
+      "raw": "content/books/aap/chapters/ch26/raw.txt"
+    },
+    {
+      "id": "ch27",
+      "number": 27,
+      "part": "part2",
+      "title": "发热",
+      "ageStage": "发热",
+      "pdfPages": "916-923",
+      "status": "done",
+      "summary": "content/books/aap/chapters/ch27/summary.json",
+      "raw": "content/books/aap/chapters/ch27/raw.txt"
+    },
+    {
+      "id": "ch28",
+      "number": 28,
+      "part": "part2",
+      "title": "泌尿和生殖系统问题",
+      "ageStage": "泌尿与生殖",
+      "pdfPages": "924-940",
+      "status": "done",
+      "summary": "content/books/aap/chapters/ch28/summary.json",
+      "raw": "content/books/aap/chapters/ch28/raw.txt"
+    },
+    {
+      "id": "ch29",
+      "number": 29,
+      "part": "part2",
+      "title": "头、颈和神经系统问题",
+      "ageStage": "头颈与神经",
+      "pdfPages": "941-952",
+      "status": "done",
+      "summary": "content/books/aap/chapters/ch29/summary.json",
+      "raw": "content/books/aap/chapters/ch29/raw.txt"
+    },
+    {
+      "id": "ch30",
+      "number": 30,
+      "part": "part2",
+      "title": "心脏问题",
+      "ageStage": "心脏",
+      "pdfPages": "953-962",
+      "status": "done",
+      "summary": "content/books/aap/chapters/ch30/summary.json",
+      "raw": "content/books/aap/chapters/ch30/raw.txt"
+    },
+    {
+      "id": "ch31",
+      "number": 31,
+      "part": "part2",
+      "title": "疫苗接种",
+      "ageStage": "疫苗接种",
+      "pdfPages": "963-970",
+      "status": "done",
+      "summary": "content/books/aap/chapters/ch31/summary.json",
+      "raw": "content/books/aap/chapters/ch31/raw.txt"
+    },
+    {
+      "id": "ch32",
+      "number": 32,
+      "part": "part2",
+      "title": "媒体问题",
+      "ageStage": "媒体使用",
+      "pdfPages": "971-978",
+      "status": "done",
+      "summary": "content/books/aap/chapters/ch32/summary.json",
+      "raw": "content/books/aap/chapters/ch32/raw.txt"
+    },
+    {
+      "id": "ch33",
+      "number": 33,
+      "part": "part2",
+      "title": "肌肉、骨骼问题",
+      "ageStage": "肌肉骨骼",
+      "pdfPages": "979-992",
+      "status": "done",
+      "summary": "content/books/aap/chapters/ch33/summary.json",
+      "raw": "content/books/aap/chapters/ch33/raw.txt"
+    },
+    {
+      "id": "ch34",
+      "number": 34,
+      "part": "part2",
+      "title": "皮肤问题",
+      "ageStage": "皮肤",
+      "pdfPages": "993-1024",
+      "status": "done",
+      "summary": "content/books/aap/chapters/ch34/summary.json",
+      "raw": "content/books/aap/chapters/ch34/raw.txt"
+    },
+    {
+      "id": "ch35",
+      "number": 35,
+      "part": "part2",
+      "title": "孩子的睡眠",
+      "ageStage": "睡眠",
+      "pdfPages": "1025-1039",
+      "status": "done",
+      "summary": "content/books/aap/chapters/ch35/summary.json",
+      "raw": "content/books/aap/chapters/ch35/raw.txt"
     }
   ]
 }
