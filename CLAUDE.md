@@ -11,8 +11,9 @@
 - **review 不过关就回滚**：如果我 review 后不满意，会让你**回滚最新的 commit**
   （`git reset --hard HEAD~1`，尚未推送时）后重做；不要停在"未提交"状态等我确认。
 - **合并方式永远用 squash and merge**：合并任何 PR 都使用 GitHub 的 **Squash and merge** 选项（`gh pr merge <n> --squash`），不用普通 merge / rebase。
-- **部署**：`main` 分支由 GitHub Pages 自动部署到 <https://jackielam.github.io/aap-baby-guide/>；
-  squash 合并到 `main` 后网站会**自动更新上线**，无需手动部署（合并后确认一下 Pages 部署成功即可）。
+- **部署**：`main` 分支由 Cloudflare Workers 自动部署到 <https://aap-baby-guide.sugar-cube-anjinia.workers.dev>；
+  squash 合并到 `main` 后网站会**自动更新上线**，无需手动部署（合并后确认一下 Cloudflare 部署成功即可）。
+  旧的 GitHub Pages 地址 <https://jackielam.github.io/aap-baby-guide/> 已停用。
 
 ## Commit message
 
