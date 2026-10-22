@@ -14,7 +14,7 @@
 
 ## 在线访问
 
-GitHub Pages：<https://jackielam.github.io/aap-baby-guide/>
+Cloudflare Workers：<https://aap-baby-guide.sugar-cube-anjinia.workers.dev>
 
 ## 本地预览
 
